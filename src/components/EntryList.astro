@@ -1,0 +1,22 @@
+---
+import { Image } from 'astro:assets';
+import { entryHref, formatDate, type SectionId } from '../site';
+import type { Entry } from '../lib/content';
+interface Props { entries: Entry[]; section: SectionId; }
+const { entries, section } = Astro.props;
+---
+<ul class:list={['entry-list', section === 'photography' && 'photo-list']}>
+  {entries.map(entry => (
+    <li>
+      <a class="entry-link" href={entryHref(section, entry.id)}>
+        {entry.collection === 'photography' && <Image src={entry.data.image} alt={entry.data.alt} width={Math.min(960, entry.data.image.width)} widths={[320, 640, 960].filter(w => w <= entry.data.image.width)} sizes="(max-width: 700px) 90vw, 45vw" format="webp" loading="lazy" />}
+        <div class="entry-title-row">
+          <h2>{entry.data.title}</h2>
+          {entry.data.date && <time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date)}</time>}
+        </div>
+        {entry.collection === 'music' && <p class="artist">{entry.data.artist}</p>}
+        <p>{entry.data.description}</p>
+      </a>
+    </li>
+  ))}
+</ul>

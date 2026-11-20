@@ -1,0 +1,246 @@
+{
+  "results": [
+    {
+      "width": 1440,
+      "route": "/",
+      "title": "tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 0,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 1440,
+      "route": "apps/",
+      "title": "Apps | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 1440,
+      "route": "music/",
+      "title": "Music | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 1440,
+      "route": "photography/",
+      "title": "Photography | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 1440,
+      "route": "blog/",
+      "title": "Blog | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 1440,
+      "route": "404.html",
+      "title": "Page not found | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 0,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 768,
+      "route": "/",
+      "title": "tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 0,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 768,
+      "route": "apps/",
+      "title": "Apps | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 768,
+      "route": "music/",
+      "title": "Music | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 768,
+      "route": "photography/",
+      "title": "Photography | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 768,
+      "route": "blog/",
+      "title": "Blog | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 768,
+      "route": "404.html",
+      "title": "Page not found | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 0,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 390,
+      "route": "/",
+      "title": "tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 0,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 390,
+      "route": "apps/",
+      "title": "Apps | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 390,
+      "route": "music/",
+      "title": "Music | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 390,
+      "route": "photography/",
+      "title": "Photography | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 390,
+      "route": "blog/",
+      "title": "Blog | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 390,
+      "route": "404.html",
+      "title": "Page not found | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 0,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 320,
+      "route": "/",
+      "title": "tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 0,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 320,
+      "route": "apps/",
+      "title": "Apps | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 320,
+      "route": "music/",
+      "title": "Music | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 320,
+      "route": "photography/",
+      "title": "Photography | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 320,
+      "route": "blog/",
+      "title": "Blog | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 1,
+      "scripts": 0,
+      "font": true
+    },
+    {
+      "width": 320,
+      "route": "404.html",
+      "title": "Page not found | tatenda nyemudzo.dev",
+      "h1": 1,
+      "overflow": false,
+      "active": 0,
+      "scripts": 0,
+      "font": true
+    }
+  ],
+  "offsite": [],
+  "keyboard": "Skip link works at all four widths; reduced motion checked at 320px"
+}

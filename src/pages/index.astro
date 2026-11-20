@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+import { sections, href } from '../site';
+import { publishedEntries } from '../lib/content';
+const collections = await Promise.all(sections.map(async section => ({ ...section, count: (await publishedEntries(section.id)).length })));
+---
+<Base home>
+  <section class="hero frame" aria-labelledby="intro-title">
+    <h1 id="intro-title">A few things<br />to share.</h1>
+    <div class="hero-bottom">
+      <p>Apps I make, music I’m listening to, photographs I take, and thoughts I want to share.</p>
+      <a class="button" href="#collection">Explore the collection</a>
+    </div>
+  </section>
+  <section id="collection" class="collection" aria-labelledby="collection-title">
+    <div class="frame">
+      <div class="collection-heading"><h2 id="collection-title">The collection</h2><p>A place for what I make and what catches my attention.</p></div>
+      <ul class="collection-index">
+        {collections.map(section => <li><a href={href(`${section.id}/`)}><h3>{section.title}</h3><span class="collection-note">{section.note}</span><span class="collection-count">{section.count} {section.count === 1 ? section.singular : `${section.singular}s`}</span></a></li>)}
+      </ul>
+    </div>
+  </section>
+</Base>
