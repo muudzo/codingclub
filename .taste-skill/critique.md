@@ -75,3 +75,25 @@ Top three remaining limitations, each visible in the screenshots:
 The greeting fits two lines at 1440, 768 and 390px. The biography uses two columns at desktop width and one at tablet/phone widths. The collection action stays before the longer biography on narrow screens. All six inspector images were opened and reviewed: no clipping, overlap, unreadable text or unintended blank regions found.
 
 Validation: source lint 0 FAIL / 0 WARN; browser inspector 0 FAIL / 0 WARN at 1440/768/390. Existing scope allowances: few-pictures, no-real-pictures, no-footage, still-page. The default browser lookup missed the installed testing browser; rerunning with its explicit CHROME_PATH succeeded without installing dependencies.
+
+## Feature 008 — experiments and ideas, round 1
+
+Seen in one second: “Experiments & ideas,” followed by a clear account of what belongs here.
+
+Idea (one sentence): Tatenda's unfinished work becomes a readable record of research, concepts, prototypes and development, without claiming completed projects.
+
+Live thing: the homepage row, header/footer navigation and return-to-collection link all lead to real sections. Project selection is intentionally deferred.
+
+Layout words by section: introduction=title / stages=definition list / empty state=tonal block / footer=inverse name field.
+
+Scores: design 6.5 · usability 8 · creativity 6 · content 7.5 → overall 7.0.
+
+Caps applied: the section starts empty by the user's request, with no invented project imagery or demos. Existing typography and colours are retained instead of a page redesign.
+
+Top three limitations, each visible in the screenshots:
+
+1. The desktop empty-state page has no actual project images or entries (inspect-experiments/desktop-page-01.jpg). Add selected real projects in the next feature.
+2. The longer navigation wraps to two rows on phones (inspect-experiments/mobile-fold.jpg). All links remain visible, readable and within the frame; preserve access without introducing a menu script.
+3. The tablet inspector flagged off-centre text ink (inspect-experiments/tablet-fold.jpg), although actual frame bounds are equal. A separate browser measurement found all four frame containers at left 32.25px / right 32.265625px. The warning measures ragged line endings, not a layout offset, so no arbitrary spacing change was made.
+
+All twelve homepage/section screenshots were opened and reviewed. No clipping or collisions found. Experiments title is one line on desktop/tablet and two on phone; the stage definitions stack on narrow screens. Homepage inspector: 0 FAIL / 0 WARN. Experiments inspector: 0 FAIL / 1 defended WARN. Source lint: 0 FAIL / 0 WARN. Existing type-only/static-scope allowances retained.

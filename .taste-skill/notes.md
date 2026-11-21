@@ -31,3 +31,9 @@ The user supplied a homepage biography and requested a natural alternative to â€
 This is a bounded edit to the existing introduction. Skip a new direction draw, keep Sentient and grey/oxblood, and retain the existing hero, collection action and four category routes. The greeting remains two lines. Place the two longer paragraphs below the statement and action in two columns on desktop, then stack them at the existing 800px breakpoint. Use the body type size and normal paragraph leading. No images or runtime interactions are required for this copy change.
 
 Argument: the greeting identifies the person; the statement says what he enjoys; his own two paragraphs explain his interests and why this collection exists. The existing collection links remain the way to explore his actual work.
+
+## Feature 008: experiments and ideas
+
+Extend the established collection/index direction rather than redraw the site. The new section distinguishes project maturity from publication: Researching, Concept, Prototype and In development are plain text labels, while published controls visibility. Explain those stages in a two-column definition list that stacks on phones. The honest empty state carries no invented projects; the user will choose real GitHub entries afterward. Reuse the existing list/detail templates, typography, colours, spacing and link affordances. No new imagery or browser scripts are needed for this empty section. Later entries can include a real sketch with alternative text and optional source/demo links.
+
+Argument: unfinished ideas have a place here; the four definitions explain what progress means; future Markdown case studies show the idea, motivation, experiments, questions and next step. The navigation and homepage index make that place discoverable.

@@ -85,16 +85,21 @@ test('static website works empty and with new entries, excludes drafts, and supp
   writeFileSync(config, readFileSync(config, 'utf8').replace("output: 'static',", "output: 'static',\n  cacheDir: './.test-astro-cache/',"));
   // Share installed dependencies, while builds and fixtures remain isolated from the real site.
   symlinkSync(join(repository, 'node_modules'), join(root, 'node_modules'), 'dir');
-  for (const section of ['apps', 'music', 'photography', 'blog']) {
+  for (const section of ['apps', 'music', 'photography', 'blog', 'experiments']) {
     for (const file of filesBelow(join(root, 'src/content', section))) rmSync(file);
   }
 
   await t.test('empty collections have useful pages, no fake entries, no runtime scripts, and working links', () => {
     const result = build(root);
     assert.equal(result.status, 0, result.log);
-    assert.equal(filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html')).length, 6);
-    for (const [section, text] of [['apps', 'No apps published yet.'], ['music', 'No songs shared yet.'], ['photography', 'No photographs shared yet.'], ['blog', 'No posts published yet.']]) {
+    assert.equal(filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html')).length, 7);
+    for (const [section, text] of [['apps', 'No apps published yet.'], ['music', 'No songs shared yet.'], ['photography', 'No photographs shared yet.'], ['blog', 'No posts published yet.'], ['experiments', 'The first ideas are on their way.']]) {
       assert.ok(page(root, section).querySelector('main').textContent.includes(text));
+    }
+    const experiments = page(root, 'experiments');
+    assert.deepEqual([...experiments.querySelectorAll('.stage-guide dt')].map(node => node.textContent), ['Researching', 'Concept', 'Prototype', 'In development']);
+    for (const selector of ['.site-header nav', '.site-footer nav', '.collection-index']) {
+      assert.ok(page(root, '').querySelector(`${selector} a[href="/experiments/"]`), selector);
     }
     assert.equal(page(root, '').querySelector('link[rel="canonical"]'), null, 'do not invent a domain');
     assertLocalLinks(root);
@@ -109,9 +114,25 @@ test('static website works empty and with new entries, excludes drafts, and supp
     write(root, 'src/content/blog/private-draft.md', '---\ntitle: PRIVATE DRAFT TITLE\ndescription: PRIVATE DRAFT DESCRIPTION\npublished: false\ndate: 2024-01-02\n---\nPRIVATE DRAFT BODY\n');
     write(root, 'src/content/blog/not-opted-in.md', '---\ntitle: PRIVATE OMITTED FLAG\ndescription: Must remain hidden without explicit publication.\ndate: 2024-01-02\n---\nPRIVATE OMITTED BODY\n');
     write(root, 'src/content/blog/future-post.md', '---\ntitle: PRIVATE FUTURE TITLE\ndescription: Must wait for a later build.\npublished: true\ndate: 2999-01-01\n---\nPRIVATE FUTURE BODY\n');
+    for (const stage of ['researching', 'concept', 'prototype', 'in-development']) {
+      const extra = stage === 'prototype' ? 'repositoryUrl: https://github.com/example/fixture\ndemoUrl: https://demo.example.test/\nvisual:\n  image: ../../assets/photos/test.png\n  alt: A fixture sketch.\n' : '';
+      write(root, `src/content/experiments/${stage}.md`, `---\ntitle: Fixture idea ${stage}\ndescription: An isolated experiment fixture.\npublished: true\nstage: ${stage}\n${extra}---\n\n## The idea\n\nA question to explore.\n\n## Next step\n\nTest the approach.\n`);
+    }
+    write(root, 'src/content/experiments/draft.md', '---\ntitle: PRIVATE IDEA\ndescription: PRIVATE idea description.\npublished: false\nstage: concept\n---\nPRIVATE idea body.');
+    write(root, 'src/content/experiments/future.md', '---\ntitle: PRIVATE FUTURE IDEA\ndescription: PRIVATE future idea.\npublished: true\nstage: researching\ndate: 2999-01-01\n---\nPRIVATE idea body.');
     const result = build(root);
     assert.equal(result.status, 0, result.log);
-    assert.equal(filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html')).length, 10);
+    assert.equal(filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html')).length, 15);
+    for (const [stage, label] of [['researching', 'Researching'], ['concept', 'Concept'], ['prototype', 'Prototype'], ['in-development', 'In development']]) {
+      assert.equal(page(root, `experiments/${stage}`).querySelector('.experiment-stage').textContent, label);
+    }
+    assert.equal(page(root, 'experiments/researching').querySelector('.download-links'), null, 'research does not require source or a demo');
+    const prototype = page(root, 'experiments/prototype');
+    assert.equal(prototype.querySelector('[aria-label="Project links"] a').href, 'https://github.com/example/fixture');
+    assert.equal(prototype.querySelector('[aria-label="Project links"] a:last-child').href, 'https://demo.example.test/');
+    assert.equal(prototype.querySelector('main img').getAttribute('alt'), 'A fixture sketch.');
+    assert.equal(page(root, 'experiments').querySelectorAll('.entry-list .experiment-stage').length, 4);
+    assert.ok(page(root, '').querySelector('main').textContent.includes('4 ideas'));
     assert.equal(page(root, 'apps/test-app').querySelector('.download-links a').getAttribute('href'), 'https://downloads.example.test/app.zip');
     assert.equal(page(root, 'music/nested/test-song').querySelector('.listen-link').getAttribute('href'), 'https://music.example.test/song');
     const post = page(root, 'blog/test-post');
@@ -152,6 +173,23 @@ test('static website works empty and with new entries, excludes drafts, and supp
     assert.equal(result.status, 0, result.log);
     assert.equal(existsSync(join(root, 'dist/apps/test-app/index.html')), false);
     assert.ok(!page(root, 'apps').querySelector('main').textContent.includes('Fixture app'));
+  });
+
+  await t.test('experiments reject invalid stages and unsafe source links', () => {
+    const file = join(root, 'src/content/experiments/prototype.md');
+    const original = readFileSync(file, 'utf8');
+    try {
+      writeFileSync(file, original.replace('stage: prototype', 'stage: finished'));
+      let result = build(root);
+      assert.notEqual(result.status, 0, 'unknown maturity stages must not build');
+      assert.match(result.log, /stage/i);
+      writeFileSync(file, original.replace('https://github.com/example/fixture', 'javascript:alert(1)'));
+      result = build(root);
+      assert.notEqual(result.status, 0, 'unsafe experiment links must not build');
+      assert.match(result.log, /repositoryUrl/i);
+    } finally {
+      writeFileSync(file, original);
+    }
   });
 
   await t.test('unsafe download URLs fail the build instead of producing an unsafe link', () => {

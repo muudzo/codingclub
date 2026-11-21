@@ -22,7 +22,7 @@ async function fixture(t, site = false) {
     for (const name of ['src', 'public', 'astro.config.mjs', 'tsconfig.json', 'package.json']) await cp(join(repository, name), join(root, name), { recursive: true });
     const config = join(root, 'astro.config.mjs');
     await writeFile(config, (await readFile(config, 'utf8')).replace("output: 'static',", "output: 'static',\n  cacheDir: './.test-astro-cache/',"));
-    for (const section of ['apps', 'music', 'photography', 'blog']) {
+    for (const section of ['apps', 'music', 'photography', 'blog', 'experiments']) {
       await rm(join(root, 'src/content', section), { recursive: true, force: true });
       await mkdir(join(root, 'src/content', section));
     }

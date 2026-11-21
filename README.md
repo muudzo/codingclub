@@ -1,6 +1,6 @@
 # tatenda nyemudzo.dev
 
-A personal website for apps and downloads, music, photography, and a blog. Built with Astro in static mode. Photography includes 26 supplied Kariba photographs; the other collections are empty. The site has not been publicly deployed.
+A personal website for apps and downloads, experiments and ideas, music, photography, and a blog. Built with Astro in static mode. Photography includes 26 supplied Kariba photographs; the other collections are empty. Public site: https://tatendanyemudzo.com/, served by Caddy on Ubuntu through Cloudflare Tunnel.
 
 ## Run locally
 
@@ -27,6 +27,7 @@ Copy one of the files in `content-templates/` to its matching collection:
 | Content | Folder | Template | Resulting URL |
 | --- | --- | --- | --- |
 | App | `src/content/apps/` | `app.md` | `/apps/your-file-name/` |
+| Experiment or idea | `src/content/experiments/` | `experiment.md` | `/experiments/your-file-name/` |
 | Song | `src/content/music/` | `song.md` | `/music/your-file-name/` |
 | Photograph | `src/content/photography/` | `photograph.md` | `/photography/your-file-name/` |
 | Blog post | `src/content/blog/` | `post.md` | `/blog/your-file-name/` |
@@ -36,6 +37,14 @@ Fill in the properties and Markdown body. Use lowercase filenames with hyphens. 
 Set **`published: true`** when an entry is ready. Omitted or false means it is excluded from the home count, lists, and generated detail routes, even in development. A future `date` also holds an entry out until a build on or after that date. Publication happens at build time; the website does not run a scheduler. Rebuild to include or remove entries.
 
 Apps need at least one labelled HTTPS download URL. Songs need an artist and HTTPS listening URL. Blog posts require a publication date. Dates display consistently in UTC. Content metadata is validated during the build.
+
+### Experiments and ideas
+
+Use `/experiments/` for research, concepts and unfinished projects. Copy `content-templates/experiment.md` into `src/content/experiments/` and choose a required `stage`: `researching`, `concept`, `prototype`, or `in-development`. The stage is shown on the list and individual page; it is separate from `published`, which controls whether an entry appears at all.
+
+The template prompts you to explain the idea, motivation, work so far, open questions and next step. A demo is optional. Optional `repositoryUrl` and `demoUrl` must use HTTPS. An optional `visual` requires an image path and meaningful `alt` text for a sketch or screenshot. Start with `published: false`; set it to true when ready to share, then build and deploy. A future optional `date` holds the entry until a later build.
+
+The section starts empty. GitHub projects will be selected and described separately; the site does not automatically import repositories.
 
 For a photo, put the original in `src/assets/photos/`, then reference it relative to the Markdown file (the template's example assumes a file directly inside `src/content/photography/`). Add accurate alternative text. Astro produces smaller WebP images and responsive sources; the original is not copied as a public download. The source repository still contains it, so check the original's metadata before making the repository public. The optional caption appears below the full photograph.
 
@@ -89,13 +98,13 @@ The composer listens on `127.0.0.1` with a private session token. Its tools and 
 
 Content and templates are separate, so a visual redesign does not require rewriting entries. Fonts are served locally; there are no runtime scripts, tracking requests, streaming embeds, database, or server adapter in this version. Sentient is by Indian Type Foundry, obtained from Fontshare. Its unmodified webfont and license are included; see `public/fonts/FFL.txt`.
 
-## Hosting later
+## Hosting
 
 The prepared Ubuntu installer is `tools/hosting/Install Caddy on Ubuntu.command`. It targets the confirmed server `muudzo@192.168.2.28`; open it in Mac Terminal, press Return when ready, then enter the Ubuntu account's SSH/sudo passwords directly. The connection starts after Return so it does not wait unattended at a password prompt. It uses Caddy's official stable Ubuntu repository, stops if another service occupies ports 80/443, and preserves an existing Caddy installation/configuration. A new installation is checked with `caddy version`, configuration validation, systemd status, and a local HTTP request. The local result/log are in ignored `.local-composer/caddy-install.exit` and `caddy-install.log`; `caddy-install.phase` records the launch stage and `caddy-install.ssh.log` holds SSH connection diagnostics. This installs the web server; website upload, a domain, DNS and firewall configuration still require their own setup.
 
-On 2026-11-20, the server reported Ubuntu 26.04.1 LTS, Caddy 2.6.2 already installed, and an active Caddy systemd service. Its existing package/configuration were preserved. The SSH session returned exit 1 after those checks; the installer now distinguishes an explicit installed/active result from a later session error and avoids launching a login shell. This final launcher adjustment passed shell syntax checks but has not been rerun remotely. The website has not been uploaded or configured on that server.
+The initial Caddy checks on 2026-11-20 found an existing active installation. The website was subsequently deployed to `/var/www/tatendanyemudzo.com`; Caddy serves it over local HTTP on port 80, and Cloudflare Tunnel provides the public connection. The homepage, gallery and a real photo asset were publicly verified on 2026-11-21.
 
-`npm run build` creates `dist/`, which can be served by a static host. No hosting account or domain has been configured. The display name is not assumed to be an owned domain.
+`npm run build` creates `dist/`. Use `npm run deploy:ubuntu` to build with the production domain and upload to the configured server. A Git push alone does not update Ubuntu.
 
 Set `SITE_URL=https://your-real-domain.example` in the build environment once you choose a domain; canonical and Open Graph URLs will then be generated. Set `BASE_PATH=/your-subdirectory/` if hosting below the domain root. See `.env.example`. In CI these should be actual build environment variables; the Astro config reads `process.env`.
 
@@ -116,7 +125,8 @@ The production deployer is `tools/hosting/Deploy Website to Ubuntu.command` (or 
 To connect `tatendanyemudzo.com` publicly without opening router ports:
 1. In Cloudflare Zero Trust (Networks → Tunnels), create a tunnel (e.g. `tatenda-site`).
 2. Run the provided tunnel connector command on Ubuntu: `sudo cloudflared service install <TUNNEL_TOKEN>`.
-3. Under Public Hostnames in Cloudflare, map `tatendanyemudzo.com` to `HTTP://localhost:80` (or `HTTP://localhost:8080`).
+3. Under Routes → Published application, map `tatendanyemudzo.com` to `http://127.0.0.1:80`, with HTTP Host Header `tatendanyemudzo.com`.
+4. The root DNS record is a Proxied CNAME named `@` targeting the actual Tunnel ID followed by `.cfargotunnel.com`. Use the full target, not just the UUID. Port 8080 is occupied by another service.
 
 ## Project memory
 

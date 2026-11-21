@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import EntryList from '../../components/EntryList.astro';
 import { sections, href } from '../../site';
 import { publishedEntries } from '../../lib/content';
+import { experimentStageIds, experimentStages } from '../../lib/experiments';
 export function getStaticPaths() { return sections.map(section => ({ params: { section: section.id }, props: { section } })); }
 const { section } = Astro.props;
 const entries = await publishedEntries(section.id);
@@ -13,6 +14,13 @@ const entries = await publishedEntries(section.id);
       <h1>{section.title}</h1>
       <p>{section.description}</p>
     </header>
+    {section.id === 'experiments' && <section class="experiment-guide" aria-labelledby="stages-title">
+      <h2 id="stages-title">Room to figure things out.</h2>
+      <p>Not every idea starts with a finished app. I’ll use these stages to show where each one stands and share what I learn as it develops.</p>
+      <dl class="stage-guide">
+        {experimentStageIds.map(id => <div><dt>{experimentStages[id].label}</dt><dd>{experimentStages[id].description}</dd></div>)}
+      </dl>
+    </section>}
     {entries.length ? <EntryList entries={entries} section={section.id} /> : (
       <section class="empty-state" aria-labelledby="empty-title">
         <h2 id="empty-title">{section.empty}</h2>

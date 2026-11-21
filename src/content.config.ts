@@ -1,6 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { experimentStageIds } from './lib/experiments';
 
 const httpsUrl = z.url({ protocol: /^https$/ });
 const common = {
@@ -46,4 +47,15 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { apps, music, photography, blog };
+const experiments = defineCollection({
+  loader: load('experiments'),
+  schema: ({ image }) => z.object({
+    ...common,
+    stage: z.enum(experimentStageIds),
+    repositoryUrl: httpsUrl.optional(),
+    demoUrl: httpsUrl.optional(),
+    visual: z.object({ image: image(), alt: z.string().trim().min(1) }).optional(),
+  }),
+});
+
+export const collections = { apps, music, photography, blog, experiments };

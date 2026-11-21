@@ -379,6 +379,43 @@ main:focus {
   color: var(--muted);
 }
 
+.experiment-stage {
+  color: var(--ink);
+  font-size: var(--small);
+}
+
+.experiment-guide {
+  margin-bottom: 48px;
+  font-size: var(--body);
+}
+
+.experiment-guide h2 {
+  font-size: var(--lead);
+  margin-bottom: 16px;
+}
+
+.experiment-guide > p {
+  max-width: 64ch;
+}
+
+.stage-guide {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin: 32px 0 0;
+}
+
+.stage-guide dt {
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.stage-guide dd {
+  margin: 0;
+  max-width: 50ch;
+  line-height: 1.55;
+}
+
 .photo-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -528,6 +565,10 @@ main:focus {
 }
 
 @media(max-width:800px) {
+  .stage-guide {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
   .site-header {
     align-items: start;
     flex-direction: column;

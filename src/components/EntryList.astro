@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import { entryHref, formatDate, type SectionId } from '../site';
 import type { Entry } from '../lib/content';
+import { experimentStages } from '../lib/experiments';
 interface Props { entries: Entry[]; section: SectionId; }
 const { entries, section } = Astro.props;
 ---
@@ -15,6 +16,7 @@ const { entries, section } = Astro.props;
           {entry.data.date && <time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date)}</time>}
         </div>
         {entry.collection === 'music' && <p class="artist">{entry.data.artist}</p>}
+        {entry.collection === 'experiments' && <p class="experiment-stage">{experimentStages[entry.data.stage].label}</p>}
         <p>{entry.data.description}</p>
       </a>
     </li>
