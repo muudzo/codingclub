@@ -17,3 +17,16 @@ Issues corrected during validation: preserve complete subjects in photo previews
 Functional browser QA passed in an isolated temporary site: required descriptions, two real-photo attachments, busy state, failed build with writing/photos retained, Command–Return retry, automatic redirect to the built post, two decoded output photographs, no runtime exceptions, and no phone overflow. A final attachment-only check on the actual composer verified whole-image previews and removal without publishing any real-site content.
 
 Limits: no persistent draft storage; no public hosting or server upload. No physical global keypress was simulated: the service was registered, its configured key equivalent verified, and its native Automator workflow run successfully. macOS may require enabling the service in Keyboard settings in an already-running application.
+
+
+## Feature 009 — authenticated phone editor, checkpoint 3
+
+Seen in one second: the existing New post composer, with a private publishing scope and Sign out action.
+
+Idea: preserve Tatenda’s existing writing experience while letting it publish from a phone. The necessary login screen uses the same wordmark, controls, Sentient typeface and grey/oxblood palette.
+
+Layout: login=focused form / editor=existing writing-and-photos grid, stacked on phones. No new visual direction or unrelated UI was introduced.
+
+Browser verification used a real authenticated session in the isolated Playwright fixture, because the standalone inspector cannot sign in to the private editor. At 1440/768/390, login, image attachment, image description and Publish completed. Automated measurements confirmed no horizontal overflow, the existing ground/accent colours, Sentient CSS and inputs at least 16px. Six screenshots were opened and reviewed. Source lint: 0 FAIL / 0 WARN.
+
+No visual defect requiring a redesign was found. The long phone form scrolls naturally, preserving the original layout. The pictured grey image and post text are isolated test fixtures and were never added to real content. Physical iPhone/Safari testing has not been performed. Home-screen installation and durable draft recovery are the next separate checkpoint.
