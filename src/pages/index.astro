@@ -4,12 +4,16 @@ import { sections, href } from '../site';
 import { publishedEntries } from '../lib/content';
 const collections = await Promise.all(sections.map(async section => ({ ...section, count: (await publishedEntries(section.id)).length })));
 ---
-<Base home>
+<Base home description="Coding, creative experiments, photography, and projects from Tatenda Nyemudzo.">
   <section class="hero frame" aria-labelledby="intro-title">
-    <h1 id="intro-title">A few things<br />to share.</h1>
+    <h1 id="intro-title">Hi, I’m<br />Tatenda.</h1>
     <div class="hero-bottom">
-      <p>Apps I make, music I’m listening to, photographs I take, and thoughts I want to share.</p>
+      <p>I like making things with technology.</p>
       <a class="button" href="#collection">Explore the collection</a>
+    </div>
+    <div class="intro-copy">
+      <p>I enjoy coding, experimenting with new technologies, and figuring out how to make things work. My interests take me across practical apps, language tools, farming projects, and creative experiments with music.</p>
+      <p>I’m curious about how technology can help with everyday problems, especially in communities I care about. This site is where I share my projects, photography, and what I’m learning along the way.</p>
     </div>
   </section>
   <section id="collection" class="collection" aria-labelledby="collection-title">
@@ -21,3 +25,24 @@ const collections = await Promise.all(sections.map(async section => ({ ...sectio
     </div>
   </section>
 </Base>
+
+<style>
+  .intro-copy {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 40px;
+    font-size: var(--body);
+  }
+
+  .intro-copy p {
+    max-width: 60ch;
+  }
+
+  @media (max-width: 800px) {
+    .intro-copy {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+  }
+</style>

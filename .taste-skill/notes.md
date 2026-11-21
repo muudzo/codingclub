@@ -23,3 +23,11 @@ Copy deck:
 No imagery is used because the user explicitly asked for empty sections and will add their own photographs later. No stock photographs, generated personal work, sample songs, fabricated releases, or invented blog posts are shown. The page's honest empty state takes priority over the skill's picture floor and sample-content density.
 
 The live thing is the working collection navigation, with hover/focus feedback and real route changes. Rich interaction is intentionally deferred until real content makes it useful; there are no runtime scripts. Motion is limited to small interaction feedback and respects reduced motion. These scope decisions take priority over the skill's moving-picture and entrance-motion floors.
+
+## Feature 007: personal introduction
+
+The user supplied a homepage biography and requested a natural alternative to “tech creative.” Use the greeting “Hi, I’m Tatenda.” and statement “I like making things with technology.” Their interests in coding, language tools, farming projects, music experiments, photography and community-focused problems are the actual content; do not add credentials or completed-product claims.
+
+This is a bounded edit to the existing introduction. Skip a new direction draw, keep Sentient and grey/oxblood, and retain the existing hero, collection action and four category routes. The greeting remains two lines. Place the two longer paragraphs below the statement and action in two columns on desktop, then stack them at the existing 800px breakpoint. Use the body type size and normal paragraph leading. No images or runtime interactions are required for this copy change.
+
+Argument: the greeting identifies the person; the statement says what he enjoys; his own two paragraphs explain his interests and why this collection exists. The existing collection links remain the way to explore his actual work.

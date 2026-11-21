@@ -51,3 +51,27 @@ All six final home inspector images and both representative app-page screenshots
 - Final design lint: 0 FAIL, 0 WARN.
 - Final browser inspector: 0 FAIL, 0 WARN at 1440/768/390. Explicit allowances: few-pictures, no-real-pictures, no-footage, still-page, because the user requested empty sections and a lean static first version.
 - All 24 page/viewport checks and keyboard skip-link checks passed. No runtime scripts or offsite browser requests were observed.
+
+## Feature 007 — personal introduction, round 1
+
+Seen in one second: the large personal greeting “Hi, I’m Tatenda.”
+
+Idea (one sentence): Tatenda introduces the interests behind his existing personal collection in his own words.
+
+Live thing: the original collection navigation and working Explore the collection anchor.
+
+Layout words by section: hero=greeting with two-column biography / collection=index / footer=inverse name field.
+
+Scores: design 6.5 · usability 8.5 · creativity 6 · content 8 → overall 7.2.
+
+Caps applied: the existing type-only homepage has no hero photographs or footage. This is a bounded introduction edit, not a redesign; the personal content improves without changing the established visual direction.
+
+Top three remaining limitations, each visible in the screenshots:
+
+1. Desktop-fold.jpg keeps the familiar oversized typographic composition. Retained intentionally for this introduction change; a new visual concept would be a separate redesign.
+2. Mobile-page-01.jpg still shows empty Apps, Music and Blog collections. Retain honest counts until actual entries are supplied.
+3. Desktop-page-01.jpg has no homepage photography. The real photographs remain in the existing Photography gallery; promoting an image is beyond this copy edit.
+
+The greeting fits two lines at 1440, 768 and 390px. The biography uses two columns at desktop width and one at tablet/phone widths. The collection action stays before the longer biography on narrow screens. All six inspector images were opened and reviewed: no clipping, overlap, unreadable text or unintended blank regions found.
+
+Validation: source lint 0 FAIL / 0 WARN; browser inspector 0 FAIL / 0 WARN at 1440/768/390. Existing scope allowances: few-pictures, no-real-pictures, no-footage, still-page. The default browser lookup missed the installed testing browser; rerunning with its explicit CHROME_PATH succeeded without installing dependencies.
