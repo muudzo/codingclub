@@ -27,3 +27,10 @@ The Obsidian vault is the shared source for design decisions, reusable skills, a
 - Ask the user one question at a time when clarification is needed. A clear request to build does not require a second approval solely because of this workflow.
 
 Follow the user's current instructions if they change this workflow.
+
+## Feature branches and rollback checkpoints
+
+- Start feature work on a dedicated branch based on the current `main`, using a name such as `feature/009-phone-publishing`.
+- Keep implementation off `main`. Commit each completed, validated step separately before starting the next step.
+- Push the feature branch and merge it into `main` after the feature's required checks pass. Preserve the individual checkpoint commits when merging so they can be reverted independently.
+- Keep the published site on the last verified revision while work is in progress. Record the branch, checkpoint commits, validation and rollback instructions in the feature note.
