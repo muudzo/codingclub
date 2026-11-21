@@ -466,6 +466,14 @@ main:focus {
   margin-top: 24px;
 }
 
+.post-paragraph {
+  white-space: pre-line;
+}
+
+.post-photos {
+  margin-top: 40px;
+}
+
 .prose h2 {
   font-size: 2rem;
   line-height: 1.2;

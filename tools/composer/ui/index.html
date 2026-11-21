@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New post · tatenda nyemudzo.dev</title>
+  <link rel="icon" href="/favicon.svg">
+  <link rel="stylesheet" href="/compose/composer.css">
+  <script src="/compose/composer.js" defer></script>
+</head>
+<body>
+  <header class="masthead frame">
+    <a href="/blog/" class="wordmark">tatenda nyemudzo.dev</a>
+    <span class="scope">Local publishing</span>
+  </header>
+  <main class="frame">
+    <div class="title-row">
+      <div><h1>New post</h1><p>A few words, a few photographs.</p></div>
+      <button type="submit" form="post-form" class="primary" id="publish">Publish post</button>
+    </div>
+    <noscript><p>This local writing tool needs JavaScript. Enable it and open the composer with your laptop shortcut.</p></noscript>
+    <form id="post-form">
+      <fieldset id="fields" class="composer-grid">
+        <legend class="sr-only">Write a blog post</legend>
+        <div class="writing">
+          <label for="title">Title</label>
+          <input id="title" name="title" required maxlength="120" autocomplete="off" autofocus placeholder="Give this moment a name">
+          <label for="text" class="text-label">Post</label>
+          <textarea id="text" name="text" required maxlength="20000" placeholder="What would you like to share?"></textarea>
+          <div class="writing-meta"><span id="words">0 words</span><span>⌘ Return to publish</span></div>
+        </div>
+        <section class="attachments" aria-labelledby="photo-heading">
+          <div class="photo-heading"><h2 id="photo-heading">Photographs</h2><span id="photo-count">0 of 8</span></div>
+          <p class="photo-help">JPG, PNG, WebP or AVIF. Up to 15 MB each.</p>
+          <input type="file" id="photos" multiple accept="image/jpeg,image/png,image/webp,image/avif" class="sr-only">
+          <button type="button" id="attach" class="secondary">Attach photos</button>
+          <p id="empty-photos" class="empty-photos">Your words can stand on their own. Add photos whenever they belong.</p>
+          <ul id="photo-list" aria-label="Attached photographs"></ul>
+        </section>
+      </fieldset>
+      <div class="publish-footer"><p id="status" role="status" aria-live="polite">Posts appear in your Blog, only on this Mac.</p><span id="today"></span></div>
+    </form>
+  </main>
+</body>
+</html>

@@ -7,3 +7,6 @@ dist/
 !.env.example
 .taste-skill/inspect*/
 .taste-skill/screenshots/
+.local-composer/
+.taste-skill/composer/inspect/
+.taste-skill/composer/browser/

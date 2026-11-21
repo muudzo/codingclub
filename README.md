@@ -52,6 +52,30 @@ The supplied Kariba collection follows this pattern: `src/content/photography/ka
 
 Draft filtering is an editorial convenience, not encryption or an access-control system. Only keep website content in `src/content/` and review the output before publishing. The private Obsidian vault is outside this project and is not read by the build. Markdown is trusted author content; do not accept unreviewed Markdown or HTML from strangers.
 
+## Write a post from your Mac
+
+Press **Control + Option + Command + P** to open **New site post**. Write a title and your post, optionally attach photographs and describe each one, then click **Publish post** (or press **Command + Return**). The composer rebuilds the website and opens your new Blog post. It works even when the Astro development server is stopped. An already-running dev server also sees the new content.
+
+To install or reinstall the Mac Quick Action after cloning or moving this repository:
+
+```sh
+npm run install-shortcut
+```
+
+The installer creates `~/Library/Services/New site post.workflow` and configures Control + Option + Command + P for that service, preserving other services. If macOS has not refreshed the shortcut, open **System Settings → Keyboard → Keyboard Shortcuts → Services**, enable **New site post**, and assign that key combination. You can also run it from an app's **Services** menu, double-click `tools/New site post.command`, or run:
+
+```sh
+npm run write-post
+```
+
+Publication currently updates the **local site only**. Each post gets a date and a unique Blog URL. The title and text are saved as structured plain text, so HTML and Markdown typed in this composer display as writing. Existing hand-written Markdown posts continue to work. Optional photographs appear below the post, in attachment order; they do not create separate Photography entries.
+
+Attach up to eight still JPG, PNG, WebP or AVIF photographs, up to 15 MB and 60 megapixels each. The tool rotates images according to their orientation, makes WebP copies with a maximum dimension of 2400px, and strips metadata from those copies. Astro then creates responsive website images. Selected originals are unchanged. Export HEIC photos as JPG first.
+
+The form keeps your writing and attachments after an error; retrying the same successfully published submission returns the existing post. A failed build removes the new entry/photos and preserves the previous static output. Build errors are recorded in `.local-composer/last-build.log`. Unpublished writing is held in the open browser tab: keep it open until publishing succeeds, or copy your writing before closing it. Drafts are not saved across browser restarts.
+
+The composer listens on `127.0.0.1` with a private session token. Its tools and `.local-composer/` state are outside `dist/`, and are not part of the public website. It does not commit, push, or deploy changes. After a computer restart, the shortcut starts it again automatically. To make it publish to your Ubuntu server later, connect a separate deployment step that uploads the completed static build.
+
 ## Change the design
 
 - `src/site.ts`: display name, section names, descriptions, and links.
@@ -67,6 +91,10 @@ Content and templates are separate, so a visual redesign does not require rewrit
 
 ## Hosting later
 
+The prepared Ubuntu installer is `tools/hosting/Install Caddy on Ubuntu.command`. It targets the confirmed server `muudzo@192.168.2.28`; open it in Mac Terminal, press Return when ready, then enter the Ubuntu account's SSH/sudo passwords directly. The connection starts after Return so it does not wait unattended at a password prompt. It uses Caddy's official stable Ubuntu repository, stops if another service occupies ports 80/443, and preserves an existing Caddy installation/configuration. A new installation is checked with `caddy version`, configuration validation, systemd status, and a local HTTP request. The local result/log are in ignored `.local-composer/caddy-install.exit` and `caddy-install.log`; `caddy-install.phase` records the launch stage and `caddy-install.ssh.log` holds SSH connection diagnostics. This installs the web server; website upload, a domain, DNS and firewall configuration still require their own setup.
+
+On 2026-11-20, the server reported Ubuntu 26.04.1 LTS, Caddy 2.6.2 already installed, and an active Caddy systemd service. Its existing package/configuration were preserved. The SSH session returned exit 1 after those checks; the installer now distinguishes an explicit installed/active result from a later session error and avoids launching a login shell. This final launcher adjustment passed shell syntax checks but has not been rerun remotely. The website has not been uploaded or configured on that server.
+
 `npm run build` creates `dist/`, which can be served by a static host. No hosting account or domain has been configured. The display name is not assumed to be an owned domain.
 
 Set `SITE_URL=https://your-real-domain.example` in the build environment once you choose a domain; canonical and Open Graph URLs will then be generated. Set `BASE_PATH=/your-subdirectory/` if hosting below the domain root. See `.env.example`. In CI these should be actual build environment variables; the Astro config reads `process.env`.
@@ -74,6 +102,21 @@ Set `SITE_URL=https://your-real-domain.example` in the build environment once yo
 The included `_headers` supplies security headers on hosts that support that format, such as Cloudflare Pages. Other hosts need equivalent configuration. The policy intentionally blocks scripts and embeds; update it deliberately if a future feature needs them. Header behaviour must be verified on the selected host before public launch.
 
 Keep large app installers on a suitable release/download host and link to them from the app's metadata. Do not put installers in Git or assume the website host supports their size. Cloudflare Pages has a 25 MiB per-file asset limit. No real app downloads have been supplied or verified yet.
+
+## Deploy to Ubuntu (`tatendanyemudzo.com`)
+
+The production deployer is `tools/hosting/Deploy Website to Ubuntu.command` (or run `npm run deploy:ubuntu`). It builds the site with `SITE_URL=https://tatendanyemudzo.com`, packages the static build, and connects to `muudzo@192.168.2.28` via native Terminal:
+
+1. Double-click `tools/hosting/Deploy Website to Ubuntu.command` or run `npm run deploy:ubuntu`.
+2. Press Return when prompted, then enter the Ubuntu account password and sudo password.
+3. The deployment script uploads the build to `/var/www/tatendanyemudzo.com`, configures Caddy (`/etc/caddy/Caddyfile`), reloads Caddy, checks local HTTP response, and installs or verifies `cloudflared`.
+
+### Cloudflare Tunnel for public routing
+
+To connect `tatendanyemudzo.com` publicly without opening router ports:
+1. In Cloudflare Zero Trust (Networks → Tunnels), create a tunnel (e.g. `tatenda-site`).
+2. Run the provided tunnel connector command on Ubuntu: `sudo cloudflared service install <TUNNEL_TOKEN>`.
+3. Under Public Hostnames in Cloudflare, map `tatendanyemudzo.com` to `HTTP://localhost:80` (or `HTTP://localhost:8080`).
 
 ## Project memory
 

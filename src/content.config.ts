@@ -38,7 +38,12 @@ const photography = defineCollection({
 
 const blog = defineCollection({
   loader: load('blog'),
-  schema: z.object({ ...common, date: z.coerce.date() }),
+  schema: ({ image }) => z.object({
+    ...common,
+    date: z.coerce.date(),
+    plainText: z.string().max(20000).optional(),
+    photos: z.array(z.object({ image: image(), alt: z.string().trim().min(1).max(400) })).max(8).default([]),
+  }),
 });
 
 export const collections = { apps, music, photography, blog };
