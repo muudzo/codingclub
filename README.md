@@ -131,3 +131,30 @@ To connect `tatendanyemudzo.com` publicly without opening router ports:
 ## Project memory
 
 Read `AGENTS.md` first. The feature, decisions, and project memory are in the shared Obsidian vault at `/Users/michaelnyemudzo/Obsidian/Coding/Projects/codingclub/`. Those notes are not website content.
+
+### Private phone publishing
+
+The writer is developed on `feature/009-phone-publishing`. Production setup requires clean,
+validated `main`, pushed to GitHub. Run `npm run setup:writer` on the Mac and follow the native
+Terminal prompts. SSH/sudo use the Ubuntu password; the separate publishing password must contain
+14–256 characters. Enter passwords only in Terminal. A repository-specific writable deploy key
+is registered through the authenticated GitHub CLI; its private key stays on Ubuntu.
+
+The writer runs as `tatenda-writer` on loopback port 3210. Caddy routes `/write/` through the
+existing Cloudflare Tunnel. Owner credentials and sessions live outside the repository under
+`/var/lib/tatenda-writer`. Public pages remain static. Phone publication commits content to GitHub
+before activating its build. Feature code still follows the branch-and-merge workflow.
+
+Future laptop deployments use `npm run deploy:ubuntu` from clean, pushed `main`; the launcher
+fetches phone posts first. Commit/push local composer posts before deploying. Server deployment
+and phone publication share a lock, and stale source is rejected.
+
+To disable the private editor while retaining the latest public site and all content, run on Ubuntu:
+
+```sh
+sudo bash /opt/tatenda-writer/current/tools/hosting/rollback-writer.sh
+```
+
+Setup keeps configuration backups in `/var/backups/tatenda-writer.*` and previous public output
+under `/var/www/tatendanyemudzo.com/previous-*`. Do not delete private state or GitHub content
+when reverting a code checkpoint. Inspect service failures with `sudo journalctl -u tatenda-writer`.

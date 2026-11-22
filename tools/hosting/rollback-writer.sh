@@ -13,6 +13,15 @@ fi
 backup=$(mktemp -d /var/backups/tatenda-writer-rollback.XXXXXX)
 chmod 700 "$backup"
 cp /etc/caddy/Caddyfile "$backup/Caddyfile"
+restore_on_error() {
+  trap - ERR
+  cp "$backup/Caddyfile" /etc/caddy/Caddyfile
+  systemctl reload caddy 2>/dev/null || systemctl restart caddy
+  systemctl restart tatenda-writer
+  echo 'Disabling the editor failed; its previous configuration was restored.' >&2
+  exit 1
+}
+trap restore_on_error ERR
 cp /etc/caddy/Caddyfile "$backup/candidate"
 "$node" --input-type=module - "$web/current" <<'JS'
 import { recoverPublicOutput } from '/opt/tatenda-writer/current/tools/writer/git-publish.mjs';
@@ -30,4 +39,5 @@ fi
 systemctl disable tatenda-writer
 rm -f "$config/enabled"
 if [[ -f "$config/config.json" ]]; then mv "$config/config.json" "$config/config.disabled.json"; fi
+trap - ERR
 echo 'Private editor disabled. The latest public website, GitHub posts, photos, credentials and state are preserved.'

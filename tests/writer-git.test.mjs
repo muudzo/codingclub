@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os';
 import { createGitPublisher, runGit } from '../tools/writer/git-publish.mjs';
 import { withPublishingLock } from '../tools/writer/lock.mjs';
 import { createPublisher } from '../tools/composer/publish.mjs';
+import { assertDeploymentRevision } from '../tools/writer/check-revision.mjs';
 
 function git(root, ...args) {
   const result = spawnSync('git', ['-C', root, ...args], { encoding: 'utf8' });
@@ -44,6 +45,14 @@ async function fixture(t) {
 }
 
 const now = () => new Date('2026-11-22T00:00:00.000Z');
+test('deployment rejects a revision made stale by a phone post', async t => {
+  const paths = await fixture(t);
+  const revision = git(paths.repository, 'rev-parse', 'HEAD');
+  await assertDeploymentRevision({ repository: paths.repository, revision });
+  await createGitPublisher(paths)(post('A newer phone post'));
+  await assert.rejects(assertDeploymentRevision({ repository: paths.repository, revision }), /GitHub advanced/);
+  await assertDeploymentRevision({ repository: paths.repository, revision: git(paths.remote, 'rev-parse', 'main') });
+});
 const post = title => ({ id: randomUUID(), title, text: 'A fixture post, never real website content.' });
 async function build(root, output) {
   const { readdir } = await import('node:fs/promises');
