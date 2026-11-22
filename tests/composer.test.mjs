@@ -49,7 +49,10 @@ test('publishing text and multiple photos produces real static Blog pages with s
   const result = await publish(input);
   const { document } = parseHTML(await readFile(join(root, 'dist', result.route, 'index.html'), 'utf8'));
   assert.ok(document.querySelector('main').textContent.includes(input.text.split('\n')[0]));
-  assert.equal(document.querySelectorAll('script').length, 0);
+  assert.equal(document.querySelectorAll('main script').length, 0, 'post text cannot create executable scripts');
+  assert.equal(document.querySelectorAll('script').length, 1);
+  assert.equal(document.querySelector('script').getAttribute('src'), '/site-navigation.js');
+  assert.equal(document.querySelector('script').textContent, '');
   assert.equal(document.querySelectorAll('h1').length, 1);
   assert.equal(document.querySelector('h1').textContent, input.title);
   assert.equal(document.querySelectorAll('.post-paragraph').length, 2);

@@ -63,11 +63,16 @@ function assertLocalLinks(root, base = '/') {
   for (const file of filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html'))) {
     const document = parseHTML(readFileSync(file, 'utf8')).document;
     assert.equal(document.querySelectorAll('h1').length, 1, file);
-    assert.equal(document.querySelectorAll('script').length, 0, `${file}: static pages should not ship JavaScript`);
+    const scripts = [...document.querySelectorAll('script')];
+    assert.equal(scripts.length, 1, `${file}: only the shared navigation enhancement is expected`);
+    assert.equal(scripts[0].getAttribute('src'), `${base}site-navigation.js`);
+    assert.equal(scripts[0].textContent, '', `${file}: no inline or content-injected scripts`);
+    assert.ok(document.querySelector('.owner-tools').hasAttribute('hidden'), 'owner controls start hidden');
     assert.equal(document.querySelectorAll('[style]').length, 0, `${file}: inline styles violate the static CSP`);
     for (const element of document.querySelectorAll('[href], [src]')) {
       const value = element.getAttribute('href') || element.getAttribute('src');
       if (!value || !value.startsWith('/')) continue;
+      if (element.matches('.owner-tools a') && value === '/write/') continue; // Separate authenticated writer, not static output.
       assert.ok(value.startsWith(base), `${file}: ${value} must include base ${base}`);
       const local = decodeURIComponent(value.slice(base.length).split('#')[0]);
       const target = join(root, 'dist', local);
@@ -89,7 +94,7 @@ test('static website works empty and with new entries, excludes drafts, and supp
     for (const file of filesBelow(join(root, 'src/content', section))) rmSync(file);
   }
 
-  await t.test('empty collections have useful pages, no fake entries, no runtime scripts, and working links', () => {
+  await t.test('empty collections have useful pages, no fake entries, only the trusted navigation script, and working links', () => {
     const result = build(root);
     assert.equal(result.status, 0, result.log);
     assert.equal(filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html')).length, 7);
