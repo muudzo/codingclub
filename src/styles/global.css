@@ -75,6 +75,11 @@ a:focus-visible,button:focus-visible {
   outline-offset: 6px;
 }
 
+summary:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; }
+[hidden] { display: none !important; }
+html { scroll-padding-block: 80px 100px; }
+body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+
 ::selection {
   background: var(--ink);
   color: var(--bg);
@@ -89,8 +94,9 @@ a:focus-visible,button:focus-visible {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 24px;
-  padding-block: 30px;
+  gap: 12px;
+  min-height: 68px;
+  padding-block: max(12px,env(safe-area-inset-top)) 12px;
 }
 
 .wordmark {
@@ -98,13 +104,33 @@ a:focus-visible,button:focus-visible {
   letter-spacing: -.025em;
   text-decoration: none;
   white-space: nowrap;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
+.site-menu { position: relative; flex: none; }
+.site-menu summary { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; cursor: pointer; list-style: none; }
+.site-menu summary::-webkit-details-marker { display: none; }
 .site-header nav {
   display: flex;
-  gap: clamp(18px,2.6vw,40px);
-  flex-wrap: wrap;
+  flex-direction: column;
+  position: absolute;
+  right: 0;
+  top: 52px;
+  width: min(280px,calc(100vw - 40px));
+  background: #f4f4f4;
+  padding: 12px 20px;
+  z-index: 5;
+  max-height: 70dvh;
+  overflow-y: auto;
 }
+
+.owner-tools { position: fixed; bottom: 0; left: 0; right: 0; z-index: 4; background: var(--bg); padding: 12px max(0px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(0px,env(safe-area-inset-left)); }
+.owner-tools .frame { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.owner-tools span { font-size: var(--small); }
+.owner-tools .button { min-height: 44px; padding: 10px 20px; }
+.has-owner-tools { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
 
 .site-header nav a {
   font-size: var(--body);
@@ -570,14 +596,9 @@ main:focus {
     gap: 24px;
   }
   .site-header {
-    align-items: start;
-    flex-direction: column;
-    gap: 14px;
-    padding-block: 24px;
+    align-items: center;
   }
-  .site-header nav {
-    gap: 12px 24px;
-  }
+  .wordmark { font-size: 1rem; white-space: normal; }
   .hero {
     padding-block: 32px 56px;
   }
