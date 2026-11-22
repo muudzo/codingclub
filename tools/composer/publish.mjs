@@ -13,7 +13,7 @@ export const limits = { photos: 8, imageBytes: 15 * 1024 * 1024, bodyBytes: 125 
 
 const exists = async path => access(path).then(() => true, () => false);
 
-export function runBuild(root, output, { env = {} } = {}) {
+export function runBuild(root, output, { env = {}, logFile = join(root, '.local-composer/last-build.log'), remote = false } = {}) {
   return new Promise((resolve, reject) => {
     const astroPackage = require('astro/package.json');
     const astro = join(dirname(require.resolve('astro/package.json')), astroPackage.bin.astro);
@@ -29,8 +29,10 @@ export function runBuild(root, output, { env = {} } = {}) {
     child.on('exit', async code => {
       clearTimeout(timeout);
       if (code === 0) return resolve();
-      await writeFile(join(root, '.local-composer/last-build.log'), log).catch(() => {});
-      reject(new PublishError('The site could not build. Your post was not published. Your writing and photos are still here; fix the build error and try again. Details: .local-composer/last-build.log', 500));
+      await mkdir(dirname(logFile), { recursive: true, mode: 0o700 }).then(() => writeFile(logFile, `Build exit: ${code ?? 'signal'}\n${log}`, { mode: 0o600 })).catch(() => {});
+      reject(new PublishError(remote
+        ? 'The site could not build. Your current website is unchanged. Your draft can be retried; private build details were saved on the server.'
+        : 'The site could not build. Your post was not published. Your writing and photos are still here; fix the build error and try again. Details: .local-composer/last-build.log', 500));
     });
   });
 }
