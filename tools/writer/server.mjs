@@ -71,10 +71,8 @@ export async function startWriter({ root, stateRoot, passwordFile, publish, publ
         if (!session && url.pathname === '/write/') return redirect('/write/login');
         if (session && url.pathname === '/write/login') return redirect('/write/');
         const login = url.pathname === '/write/login';
-        let html = await readFile(login ? join(directory, 'ui/login.html') : join(sharedUI, 'index.html'), 'utf8');
-        if (!login) html = html.replace('<body>', '<body data-mode="remote">').replaceAll('/compose/', '/write/').replace('href="/favicon.svg"', 'href="/write/favicon.svg"').replace('Local publishing', 'Private publishing').replace('Posts appear in your Blog, only on this Mac.', 'Posts appear on your website after publishing.').replace('This local writing tool needs JavaScript. Enable it and open the composer with your laptop shortcut.', 'Enable JavaScript to write and publish.').replace('Up to 15 MB each.', 'Up to 10 MB each.').replace('<span class="scope">Private publishing</span>', '<div class="account-actions"><span class="scope">Private publishing</span><button type="button" class="sign-out" id="sign-out">Sign out</button></div>');
+        let html = await readFile(join(directory, login ? 'ui/login.html' : 'ui/index.html'), 'utf8');
         html = html.replace('</head>', '<link rel="manifest" href="/write/app.webmanifest"><link rel="apple-touch-icon" href="/write/icon-192.png"><meta name="theme-color" content="#e2e2e2"></head>');
-        if (!login) html = html.replace('<script', '<script src="/write/drafts.js" defer></script><script').replace('id="status"', 'id="status"').replace('</form>', '<p id="draft-status" role="status"></p><button type="button" class="sign-out" id="discard-draft">Discard draft</button></form>');
         bytes = Buffer.from(html); type = 'text/html; charset=utf-8';
       } else if (url.pathname === '/write/composer.css') {
         bytes = Buffer.from((await readFile(join(sharedUI, 'composer.css'), 'utf8')).replaceAll('/compose/', '/write/')); type = 'text/css';

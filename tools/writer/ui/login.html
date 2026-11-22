@@ -2,22 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Sign in · tatenda nyemudzo.dev</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="/write/favicon.svg">
   <link rel="stylesheet" href="/write/composer.css">
   <script src="/write/login.js" defer></script>
 </head>
-<body>
-  <header class="masthead frame"><a href="/" class="wordmark">tatenda nyemudzo.dev</a><span class="scope">Private publishing</span></header>
+<body data-mode="remote">
+  <header class="masthead frame"><a href="/" class="wordmark">tatenda nyemudzo.dev</a><a href="/" class="home-link">Home</a></header>
   <main class="frame login">
     <h1>Sign in to write</h1>
-    <p class="login-intro">A few words, a few photographs. Share them from wherever you are.</p>
+    <p class="login-intro">Your private writing space. Any saved draft will be here after you sign in on this device.</p>
     <form id="login-form">
       <div class="writing">
         <label for="password">Publishing password</label>
-        <input type="password" id="password" name="password" autocomplete="current-password" required maxlength="256" autofocus>
+        <input type="password" id="password" name="password" autocomplete="current-password" required maxlength="256">
       </div>
       <button type="submit" class="primary" id="sign-in">Sign in</button>
       <p id="status" role="status" aria-live="polite"></p>

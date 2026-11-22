@@ -15,15 +15,23 @@ if (token) sessionStorage.setItem('composer-token', token);
 history.replaceState(null, '', location.pathname);
 let id = crypto.randomUUID(), csrf, attempted = false;
 let photos = [], busy = false, dirty = false;
-let draftQueue = Promise.resolve(), draftTimer, draftReady = false, completed = false;
+let draftQueue = Promise.resolve(true), draftTimer, draftReady = false, completed = false;
 const draftStatus = document.querySelector('#draft-status');
+const signInAgain = document.querySelector('#sign-in-again');
+const publishLabel = remote ? 'Publish' : 'Publish post';
+function requireSignIn() {
+  csrf = undefined;
+  publish.disabled = true;
+  if (signInAgain) signInAgain.hidden = false;
+}
 function saveDraft() {
   if (!remote || !draftReady || completed) return draftQueue;
   clearTimeout(draftTimer);
   const snapshot = { id, attempted, title: title.value, text: text.value, photos: photos.map(photo => ({ key: photo.key, alt: photo.alt, file: photo.file })) };
   draftQueue = draftQueue.then(() => window.WriterDraft.save(snapshot)).then(() => {
     draftStatus.textContent = 'Draft saved on this device.';
-  }).catch(() => { draftStatus.textContent = 'Draft could not be saved on this device. Keep this page open.'; });
+    return true;
+  }).catch(() => { draftStatus.textContent = 'Draft could not be saved on this device. Keep this page open.'; return false; });
   return draftQueue;
 }
 const imageBytes = (remote ? 10 : 15) * 1024 * 1024;
@@ -76,7 +84,10 @@ form.addEventListener('input', () => {
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (busy) return;
-  if (remote ? !csrf : !token) return message(remote ? 'Sign in again before publishing. Keep this draft open.' : 'Open this composer using your laptop shortcut, then try again.', true);
+  if (remote ? !csrf : !token) {
+    if (remote) requireSignIn();
+    return message(remote ? 'Sign in again to resume this draft.' : 'Open this composer using your laptop shortcut, then try again.', true);
+  }
   if (!title.value.trim() || !text.value.trim()) return message('Add a title and write your post.', true);
   const data = new FormData();
   data.set('id', id); data.set('title', title.value); data.set('text', text.value);
@@ -88,6 +99,7 @@ form.addEventListener('submit', async event => {
   try {
     const response = await fetch(remote ? '/write/api/publish' : '/api/publish', { method: 'POST', headers: remote ? { 'X-Writer-CSRF': csrf } : { 'X-Composer-Token': token }, body: data });
     const result = await response.json().catch(() => ({ error: 'The connection was interrupted. Retry this draft to check whether it published.' }));
+    if (remote && [401, 403].includes(response.status)) requireSignIn();
     if (!response.ok || typeof result.url !== 'string') throw new Error(result.error || 'Your post could not be published. Try again.');
     completed = true; clearTimeout(draftTimer);
     if (remote) { await draftQueue; await window.WriterDraft.clear().catch(() => {}); }
@@ -96,7 +108,7 @@ form.addEventListener('submit', async event => {
   } catch (error) {
     message(error.message === 'Failed to fetch' ? 'The connection was interrupted. Your writing and photos are still here. Retry the same draft to check whether it published.' : error.message, true);
   } finally {
-    busy = false; fields.disabled = false; publish.disabled = false; publish.textContent = 'Publish post';
+    busy = false; fields.disabled = false; publish.disabled = remote && !csrf; publish.textContent = publishLabel;
   }
 });
 document.addEventListener('keydown', event => {
@@ -116,6 +128,15 @@ if (remote) {
   } catch { draftStatus.textContent = 'Draft storage is unavailable. Keep this page open while writing.'; }
   draftReady = true; fields.disabled = false;
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveDraft(); });
+  for (const link of [document.querySelector('#back-to-site'), signInAgain].filter(Boolean)) {
+    link.addEventListener('click', async event => {
+      event.preventDefault();
+      if (busy) return message('Please wait for publishing to finish before leaving.', true);
+      if (!await saveDraft()) return message('This draft could not be saved. Keep this page open and try again.', true);
+      dirty = false;
+      location.assign(link.href);
+    });
+  }
   document.querySelector('#discard-draft').addEventListener('click', async () => {
     if (busy || !confirm('Discard this draft and its attached photos from this device?')) return;
     clearTimeout(draftTimer); await draftQueue;
@@ -125,14 +146,14 @@ if (remote) {
     id = crypto.randomUUID(); attempted = false; dirty = false; renderPhotos(); countWords(); draftStatus.textContent = 'Draft discarded.';
   });
   fetch('/write/api/session').then(async response => {
-    if (!response.ok) throw new Error('Sign in again before publishing. Keep this draft open.');
+    if (!response.ok) { requireSignIn(); throw new Error('Sign in again to resume this draft.'); }
     csrf = (await response.json()).csrf;
     publish.disabled = false;
   }).catch(error => message(error.message, true));
   document.querySelector('#sign-out').addEventListener('click', async () => {
     if (!csrf || busy) return;
     try {
-      await saveDraft();
+      if (!await saveDraft()) throw new Error('This draft could not be saved. Keep this page open and try again.');
       const response = await fetch('/write/api/logout', { method: 'POST', headers: { 'X-Writer-CSRF': csrf } });
       if (!response.ok) throw new Error('Sign-out did not finish. Please try again.');
       dirty = false; location.assign('/write/login');

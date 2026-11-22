@@ -12,7 +12,7 @@ const localPath = Astro.url.pathname.slice(base.length);
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title ? `${title} | ${site.name}` : site.name}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#e2e2e2" />
@@ -31,11 +31,17 @@ const localPath = Astro.url.pathname.slice(base.length);
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header frame">
       <a class="wordmark" href={href()} aria-label={`${site.name}, home`}>{site.name}</a>
-      <nav aria-label="Main navigation">
+      <details class="site-menu">
+        <summary aria-label="Navigation menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" /></svg></summary>
+        <nav aria-label="Main navigation">
         {sections.map(section => <a href={href(`${section.id}/`)} aria-current={localPath.startsWith(`${section.id}/`) ? 'page' : undefined}>{section.title}</a>)}
-      </nav>
+        </nav>
+      </details>
     </header>
     <main id="main" tabindex="-1"><slot /></main>
+    <aside class="owner-tools" aria-label="Your writing space" hidden>
+      <div class="frame"><span>Your writing space</span><a class="button" href="/write/">New post</a></div>
+    </aside>
     <footer class="site-footer">
       <div class="frame footer-top">
         <p>A personal collection.<br />Always room for more.</p>
@@ -46,5 +52,6 @@ const localPath = Astro.url.pathname.slice(base.length);
       </div>
       <div class="frame"><p class="footer-name">tatenda nyemudzo.dev</p></div>
     </footer>
+    <script is:inline src={href('site-navigation.js')} defer></script>
   </body>
 </html>

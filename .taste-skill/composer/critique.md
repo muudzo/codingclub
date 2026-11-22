@@ -41,3 +41,11 @@ Draft reload restores text, photo description and original photo bytes; successf
 storage. No new imagery, ornamental UI, animations or redesign. Physical iPhone Safari installation
 remains a user-device check after server rollout. Word count restoration corrected after screenshot
 review showed zero words for the restored draft.
+
+## Feature 010 final review (2026-11-22)
+
+The writing area answers the screen's question first; one compact task header keeps Publish reachable. Frame edges align at desktop, tablet and phone widths; optional photo controls move below writing on smaller screens. Brand colour appears on the primary action, focus and errors; the supplied font/background remain visible. Photo and word counts come from actual input; zero photos is honest and there are no invented entries, charts or legends. Native navigation folds into a named hamburger. Draft restoration and session recovery are visible beside the task.
+
+Changes from the first version: removed stacked navigation/account rows, made Back save before navigating, and exposed sign-in recovery without changing retry identity. Final lint: 0 FAIL/0 WARN. Browser inspector: editor 0 FAIL/0 WARN; login 0 FAIL/1 WARN. The login's desktop empty space is intentional: it is a single password task and does not need filler content. Public inspector: 0 FAIL/0 WARN with explicit few-pictures/still-page/no-footage allowances to retain the user's established type-only homepage and bounded UI scope. No imagery or motion redesign is included. Inspector desktop/tablet/mobile images and six-size browser screenshots were visually reviewed.
+
+Heuristic checks: (1) truthful saving/publishing/error feedback; (2) Title/Post/Photos in task order; (3) Back and confirmed discard; (4) same brand and labels; (5) native validation and busy protection; (6) visible New post and sign-in recovery; (7) keyboard shortcut on desktop and device restoration; (8) compact primary-task header; (9) failed saves keep the editor open, session expiry keeps writing/photos/request ID; (10) local-draft and photo-limit help beside the controls. Automated browser checks cover visitor/owner action visibility, six sizes, 44px controls, no horizontal overflow, enlarged editor text, navigation/resumption, storage failure, session expiry and retry. Native-device behaviour is not certified by those checks.

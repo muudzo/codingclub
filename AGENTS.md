@@ -34,3 +34,16 @@ Follow the user's current instructions if they change this workflow.
 - Keep implementation off `main`. Commit each completed, validated step separately before starting the next step.
 - Push the feature branch and merge it into `main` after the feature's required checks pass. Preserve the individual checkpoint commits when merging so they can be reverted independently.
 - Keep the published site on the last verified revision while work is in progress. Record the branch, checkpoint commits, validation and rollback instructions in the feature note.
+
+## Debugging workflow
+
+Use this systematic debugging workflow for bugs and failed checks:
+
+1. Reproduce the failure and record the expected behaviour, actual result, and relevant error. Separate environment restrictions from code failures.
+2. Trace the failing path and inspect the relevant code, private logs, recent changes, and deployment revision. Keep credentials and private logs out of public output.
+3. State a specific root-cause hypothesis and test it with the smallest useful check before editing. Fix the cause while preserving content, drafts, authentication, and retry behaviour.
+4. Add a focused regression check for a meaningful behaviour bug; reuse existing tests when they already cover it. Use isolated fixtures instead of production posts.
+5. Run the relevant tests and required build/type checks. For UI changes, follow the vault's UI/UX standards, inspect real-browser screenshots and verify navigation, keyboard access, touch targets, overflow, and error recovery.
+6. Record actual results and limitations in the feature note, commit the validated fix, and verify the deployed behaviour before calling it resolved. Distinguish browser emulation from physical-device testing.
+
+This is the project's debugging method, documented here so future agents can use it without installing another skill. Keep the investigation scoped to the reported issue; avoid speculative refactors.
