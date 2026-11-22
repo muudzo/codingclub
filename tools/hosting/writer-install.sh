@@ -172,7 +172,11 @@ PY
     if [[ "$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: tatendanyemudzo.com' http://127.0.0.1:3210/write/login || true)" == 200 ]]; then ready=1; break; fi
     sleep 1
   done
-  [[ "$ready" == 1 ]] || { echo 'The private editor did not become ready.' >&2; false; }
+  if [[ "$ready" != 1 ]]; then
+    echo 'The private editor did not become ready.' >&2
+    journalctl -u tatenda-writer -n 30 --no-pager >&2 || true
+    false
+  fi
   cp "$candidate" "$CADDY"
   caddy_applied=1
   systemctl reload caddy 2>/dev/null || systemctl restart caddy

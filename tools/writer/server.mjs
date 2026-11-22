@@ -1,8 +1,9 @@
+import { isEntryPoint } from './entry-point.mjs';
 import { createServer } from 'node:http';
 import { isIP } from 'node:net';
 import { readFile, stat } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { createAuth, equalSecret } from './auth.mjs';
 import { createGitPublisher, recoverPublicOutput } from './git-publish.mjs';
 import { withPublishingLock } from './lock.mjs';
@@ -101,7 +102,7 @@ export async function startWriter({ root, stateRoot, passwordFile, publish, publ
   return { server, origin: listenerOrigin, publicOrigin: origin };
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isEntryPoint(import.meta.url)) {
   const config = JSON.parse(await readFile(process.env.WRITER_CONFIG || '/etc/tatenda-writer/config.json', 'utf8'));
   const root = resolve(directory, '../..');
   const gitEnv = sshEnvironment(config);

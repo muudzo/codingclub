@@ -1,5 +1,5 @@
+import { isEntryPoint } from './entry-point.mjs';
 import { readFile } from 'node:fs/promises';
-import { pathToFileURL } from 'node:url';
 import { runGit, sshEnvironment } from './git.mjs';
 
 export async function assertDeploymentRevision({ repository, revision, gitEnv = {} }) {
@@ -9,7 +9,7 @@ export async function assertDeploymentRevision({ repository, revision, gitEnv = 
   if (latest !== revision) throw new Error('GitHub advanced after this build, possibly with a phone post. Synchronise and deploy again; the current website was preserved.');
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isEntryPoint(import.meta.url)) {
   try {
     const config = JSON.parse(await readFile('/etc/tatenda-writer/config.json', 'utf8'));
     await assertDeploymentRevision({ repository: config.repository, revision: process.argv[2], gitEnv: sshEnvironment(config) });

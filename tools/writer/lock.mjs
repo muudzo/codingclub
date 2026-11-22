@@ -1,7 +1,8 @@
+import { isEntryPoint } from './entry-point.mjs';
 import { spawn } from 'node:child_process';
 import { mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { PublishError } from '../composer/errors.mjs';
 
 export async function withPublishingLock(path, work) {
@@ -29,7 +30,7 @@ export async function withPublishingLock(path, work) {
   }
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isEntryPoint(import.meta.url)) {
   const [path, separator, command, ...args] = process.argv.slice(2);
   if (!path || separator !== '--' || !command) throw new Error('Usage: lock.mjs PATH -- COMMAND [ARGS]');
   try {

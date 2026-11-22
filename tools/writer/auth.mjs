@@ -1,8 +1,8 @@
+import { isEntryPoint } from './entry-point.mjs';
 import { randomBytes, scrypt, timingSafeEqual, createHash } from 'node:crypto';
 import { promisify } from 'node:util';
 import { mkdir, readFile, writeFile, readdir, rm, rename } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { PublishError } from '../composer/errors.mjs';
 
 const derive = promisify(scrypt);
@@ -92,7 +92,7 @@ export async function createAuth({ passwordFile, stateRoot, secure = true, now =
   };
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isEntryPoint(import.meta.url)) {
   let bytes = 0, password = '';
   for await (const chunk of process.stdin) {
     bytes += chunk.length;
