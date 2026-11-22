@@ -1,14 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, mkdir, writeFile, readFile, rm, rename } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readFile, rm, rename, cp, readdir } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createGitPublisher, runGit } from '../tools/writer/git-publish.mjs';
 import { withPublishingLock } from '../tools/writer/lock.mjs';
-import { createPublisher } from '../tools/composer/publish.mjs';
+import { createPublisher, runBuild } from '../tools/composer/publish.mjs';
 import { assertDeploymentRevision } from '../tools/writer/check-revision.mjs';
+import { createRequire } from 'node:module';
+import { parseHTML } from 'linkedom';
+
+const project = resolve(import.meta.dirname, '..');
+const require = createRequire(import.meta.url);
+const sharp = require(require.resolve('sharp', { paths: [require.resolve('astro/package.json')] }));
 
 function git(root, ...args) {
   const result = spawnSync('git', ['-C', root, ...args], { encoding: 'utf8' });
@@ -95,6 +101,69 @@ test('a rejected Git push preserves public output and a retry can finish without
   const result = await publish(input);
   assert.ok((await readFile(join(paths.publicRoot, 'index.html'), 'utf8')).includes(result.route.split('/')[2]));
   assert.equal(git(paths.remote, 'rev-list', '--count', 'main'), '2');
+});
+
+test('a staging copy failure preserves the public site and does not push source', async t => {
+  const paths = await fixture(t);
+  const input = post('Retry after staging copy failure');
+  let fail = true;
+  const publish = createGitPublisher({ ...paths, build: async (root, output) => {
+    await build(root, output);
+    if (fail) {
+      // A conflicting destination makes the cross-filesystem staging copy fail.
+      const staging = join(paths.publicRoot, '..', `build-${input.id}`);
+      await mkdir(staging, { recursive: true });
+      await writeFile(join(staging, 'index.html'), 'Incomplete staging');
+    }
+  } });
+  await assert.rejects(publish(input), { code: 'ERR_FS_CP_EEXIST' });
+  assert.equal(await readFile(join(paths.publicRoot, 'index.html'), 'utf8'), 'Previous public website');
+  assert.equal(git(paths.remote, 'rev-list', '--count', 'main'), '1');
+  fail = false;
+  const result = await publish(input);
+  assert.match(await readFile(join(paths.publicRoot, result.route, 'index.html'), 'utf8'), /Retry after staging copy failure/);
+  assert.equal(git(paths.remote, 'rev-list', '--count', 'main'), '2');
+});
+
+test('real Astro photo publication stages completed output and retries without duplicate source', { timeout: 180000 }, async t => {
+  const paths = await fixture(t);
+  // On Ubuntu this parent can be mounted separately using the writer's systemd
+  // restrictions. All Git, content and output remain disposable test fixtures.
+  if (process.env.WRITER_TEST_PUBLIC_PARENT) {
+    const publicDirectory = await mkdtemp(join(process.env.WRITER_TEST_PUBLIC_PARENT, 'writer-test-'));
+    t.after(() => rm(publicDirectory, { recursive: true, force: true }));
+    paths.publicRoot = join(publicDirectory, 'current');
+    await mkdir(paths.publicRoot);
+    await writeFile(join(paths.publicRoot, 'index.html'), 'Previous public website');
+  }
+  for (const name of ['src', 'public', 'astro.config.mjs', 'package.json', 'package-lock.json']) {
+    await cp(join(project, name), join(paths.seed, name), { recursive: true });
+  }
+  for (const section of ['apps', 'music', 'photography', 'blog', 'experiments']) {
+    await rm(join(paths.seed, 'src/content', section), { recursive: true, force: true });
+    await mkdir(join(paths.seed, 'src/content', section));
+  }
+  git(paths.seed, 'add', '.');
+  git(paths.seed, 'commit', '-m', 'Isolated real Astro site');
+  git(paths.seed, 'push', 'origin', 'main');
+  const photos = [{ bytes: await sharp({ create: { width: 80, height: 60, channels: 3, background: '#353535' } }).png().toBuffer(), alt: 'Isolated filesystem test image' }];
+  const input = { ...post('Isolated photo publishing check'), photos };
+  const publish = createGitPublisher({ ...paths, dependenciesRoot: project, build: runBuild });
+  let result;
+  try { result = await publish(input); }
+  catch (error) {
+    t.diagnostic(await readFile(join(paths.stateRoot, 'last-build.log'), 'utf8').catch(() => 'No retained build log.'));
+    throw error;
+  }
+  const { document } = parseHTML(await readFile(join(paths.publicRoot, result.route, 'index.html'), 'utf8'));
+  const image = document.querySelector('.post-photos img');
+  assert.equal(document.querySelector('h1').textContent, input.title);
+  assert.equal(image.getAttribute('alt'), photos[0].alt);
+  assert.equal((await sharp(join(paths.publicRoot, image.getAttribute('src'))).metadata()).format, 'webp');
+  assert.match(git(paths.remote, 'show', `main:src/content/blog/${result.route.split('/')[2]}.md`), /Isolated photo publishing check/);
+  assert.deepEqual(await publish(input), result);
+  assert.equal(git(paths.remote, 'rev-list', '--count', 'main'), '3');
+  assert.deepEqual(await readdir(join(paths.stateRoot, 'worktrees')), []);
 });
 
 test('retry resumes source that reached Git before activation was interrupted', async t => {

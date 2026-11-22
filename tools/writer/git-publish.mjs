@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile, readdir, chmod, rm, symlink, rename, stat } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, readdir, chmod, rm, symlink, rename, stat, cp } from 'node:fs/promises';
 import { join, relative, isAbsolute } from 'node:path';
 import { createPublisher, normalisePost, postDigest, runBuild, PublishError } from '../composer/publish.mjs';
 import { withPublishingLock } from './lock.mjs';
@@ -71,7 +71,16 @@ export function createGitPublisher({ repository, stateRoot, publicRoot, dependen
           if (!expected.equals(await readFile(join(tree, 'package-lock.json')))) throw new PublishError('Deploy the latest site dependencies before publishing this draft.', 409);
           await symlink(join(dependenciesRoot, 'node_modules'), join(tree, 'node_modules'), 'dir');
           const publish = createPublisher({ root: tree, stateRoot, publicRoot, resume: true, now: () => new Date(request.date),
-            build: (root, output) => build(root, output, { logFile: join(stateRoot, 'last-build.log'), remote: true, env: { SITE_URL: siteUrl, BASE_PATH: '/', WRITER_ASTRO_CACHE_DIR: join(tree, '.writer-cache') } }),
+            build: async (root, output) => {
+              // Astro renames prerender assets into its output. Keep both inside
+              // the worktree: systemd can mount private state and public output
+              // separately, making those renames fail with EXDEV otherwise.
+              const built = join(root, '.writer-output');
+              await build(root, built, { logFile: join(stateRoot, 'last-build.log'), remote: true, env: { SITE_URL: siteUrl, BASE_PATH: '/', WRITER_ASTRO_CACHE_DIR: join(tree, '.writer-cache') } });
+              // Copy only a completed build across mounts. Activation still uses
+              // the existing atomic rename beside the public site, after Git save.
+              await cp(built, output, { recursive: true, errorOnExist: true, force: false });
+            },
             beforeActivate: async ({ root, output, post: file, assets }) => {
               assertHeld();
               const paths = [relative(root, file), ...(assets ? [relative(root, assets)] : [])];
