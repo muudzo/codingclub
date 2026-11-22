@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>New post · tatenda nyemudzo.dev</title>
+  <link rel="icon" href="/write/favicon.svg">
+  <link rel="stylesheet" href="/write/composer.css">
+  <script src="/write/drafts.js" defer></script>
+  <script src="/write/composer.js" defer></script>
+</head>
+<body data-mode="remote">
+  <header class="editor-top frame">
+    <a href="/" id="back-to-site">Back<span class="sr-only"> to site</span></a>
+    <h1>New post</h1>
+    <button type="submit" form="post-form" class="primary" id="publish" aria-label="Publish post" disabled>Publish</button>
+  </header>
+  <main class="frame">
+    <p id="draft-status" class="draft-status" role="status">Drafts stay on this device.</p>
+    <noscript><p>Enable JavaScript to write and publish.</p></noscript>
+    <form id="post-form">
+      <fieldset id="fields" class="composer-grid" disabled>
+        <legend class="sr-only">Write a blog post</legend>
+        <div class="writing">
+          <label for="title">Title</label>
+          <input id="title" name="title" required maxlength="120" autocomplete="off" placeholder="Give this moment a name">
+          <label for="text" class="text-label">Post</label>
+          <textarea id="text" name="text" required maxlength="20000" placeholder="What would you like to share?"></textarea>
+          <div class="writing-meta"><span id="words">0 words</span><span class="desktop-shortcut">⌘ Return to publish</span></div>
+        </div>
+        <section class="attachments" aria-labelledby="photo-heading">
+          <div class="photo-heading"><h2 id="photo-heading">Photos</h2><span id="photo-count">0 of 8</span></div>
+          <p class="photo-help">Optional. JPG, PNG, WebP or AVIF. Up to 10 MB each.</p>
+          <input type="file" id="photos" multiple accept="image/jpeg,image/png,image/webp,image/avif" class="sr-only">
+          <button type="button" id="attach" class="secondary">Add photos</button>
+          <p id="empty-photos" class="empty-photos">Add photos whenever they belong.</p>
+          <ul id="photo-list" aria-label="Attached photographs"></ul>
+        </section>
+      </fieldset>
+      <div class="publish-footer"><p id="status" role="status" aria-live="polite">Posts appear on your website after publishing.</p><span id="today"></span></div>
+      <a href="/write/login" id="sign-in-again" class="recovery-link" hidden>Sign in and resume this draft</a>
+      <div class="account-actions"><button type="button" class="sign-out" id="discard-draft">Discard draft</button><button type="button" class="sign-out" id="sign-out">Sign out</button></div>
+    </form>
+  </main>
+</body>
+</html>

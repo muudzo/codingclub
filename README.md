@@ -168,3 +168,10 @@ One draft, including attached photographs, is saved in this browser's IndexedDB.
 “Draft saved on this device” before closing. Drafts do not sync between devices/browsers and
 may be removed by clearing browser data or private browsing. Use Discard draft to remove it.
 A failed submission retains its retry identity; successful publication clears the completed draft.
+
+The public header has a hamburger menu that also works without JavaScript. After your owner
+session is confirmed, **New post** appears on public pages and opens or resumes this device's
+draft. **Back** saves the draft before returning to the site. If your session expires, use
+**Sign in and resume this draft**; writing, photos and the retry identity are retained.
+Safari and the installed web app may have separate sessions and draft storage: sign in within
+the app you are using. A storage error keeps the editor open so you can preserve your writing.
