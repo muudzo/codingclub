@@ -3,7 +3,8 @@ import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { readFile, mkdir, writeFile, realpath, stat } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve, join, extname, sep } from 'node:path';
-import { createPublisher, PublishError, limits } from './publish.mjs';
+import { createPublisher, PublishError } from './publish.mjs';
+import { readPostForm } from './uploads.mjs';
 
 const ui = join(dirname(fileURLToPath(import.meta.url)), 'ui');
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.png': 'image/png', '.jpg': 'image/jpeg' };
@@ -31,23 +32,7 @@ export async function startComposer({ root, port = 0, token = randomBytes(32).to
         if (reading) throw new PublishError('A post is being published. Please wait.', 409);
         reading = true;
         try {
-          let size = 0; const chunks = [];
-          for await (const chunk of req) {
-            size += chunk.length;
-            if (size > limits.bodyBytes) throw new PublishError('These attachments are too large. Use up to 8 photos of 15 MB each.', 413);
-            chunks.push(chunk);
-          }
-          let form;
-          try { form = await new Request(origin, { method: 'POST', headers: { 'Content-Type': req.headers['content-type'] }, body: Buffer.concat(chunks) }).formData(); }
-          catch { throw new PublishError('The upload could not be read. Please try again.'); }
-          const uploads = form.getAll('photos');
-          if (uploads.length > limits.photos) throw new PublishError('Attach no more than 8 photos.');
-          const alts = form.getAll('alt');
-          const photos = await Promise.all(uploads.map(async (file, index) => {
-            if (typeof file === 'string' || file.size > limits.imageBytes) throw new PublishError('Each photo must be smaller than 15 MB.');
-            return { bytes: Buffer.from(await file.arrayBuffer()), alt: alts[index] };
-          }));
-          const result = await publish({ id: form.get('id'), title: form.get('title'), text: form.get('text'), photos });
+          const result = await publish(await readPostForm(req, origin));
           return send(200, { ...result, url: `${origin}${base}${result.route}` });
         } finally { reading = false; }
       }

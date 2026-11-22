@@ -82,7 +82,7 @@ test('static website works empty and with new entries, excludes drafts, and supp
   for (const name of ['src', 'public', 'astro.config.mjs', 'tsconfig.json', 'package.json']) cpSync(join(repository, name), join(root, name), { recursive: true });
   // Concurrent fixture builds share dependencies, but must never share Astro's content cache.
   const config = join(root, 'astro.config.mjs');
-  writeFileSync(config, readFileSync(config, 'utf8').replace("output: 'static',", "output: 'static',\n  cacheDir: './.test-astro-cache/',"));
+  writeFileSync(config, readFileSync(config, 'utf8').replace("cacheDir: process.env.WRITER_ASTRO_CACHE_DIR || undefined,", "cacheDir: './.test-astro-cache/',"));
   // Share installed dependencies, while builds and fixtures remain isolated from the real site.
   symlinkSync(join(repository, 'node_modules'), join(root, 'node_modules'), 'dir');
   for (const section of ['apps', 'music', 'photography', 'blog', 'experiments']) {

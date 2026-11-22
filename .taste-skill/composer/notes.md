@@ -13,3 +13,9 @@ Grid: twelve 77px columns plus eleven 16px gaps = 1100px. Writing spans eight co
 States to verify: empty, text entered, multiple attachments with required descriptions, attachment removal, validation, publishing busy state, failed publishing with content retained, successful redirect to the built post. No sample content is added to the real site's Blog by QA.
 
 Copy: New post / A few words, a few photographs. / Title / Post / Photographs / Attach photos / Publish post / Posts appear in your Blog, only on this Mac.
+
+## Feature 009: phone publishing
+
+Keep the established Editorial greeting composer and its Sentient/grey/oxblood tokens. Reuse the same fields, image previews, flat controls and responsive grid. Remote mode changes only the publishing scope, adds a plain Sign out control, and uses a focused password screen built from the same wordmark, type and inputs. No new visual direction, navigation shell, imagery or dashboard widgets. The private editor remains separate from the static public website.
+
+The screen's question remains “What do I want to share?” Login is only the necessary first step; all publishing feedback stays near the form. Mobile text inputs remain at least 16px and primary touch targets retain their existing 44px minimum.

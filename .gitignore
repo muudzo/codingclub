@@ -8,5 +8,6 @@ dist/
 .taste-skill/inspect*/
 .taste-skill/screenshots/
 .local-composer/
+.writer-cache/
 .taste-skill/composer/inspect/
 .taste-skill/composer/browser/
