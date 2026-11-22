@@ -72,11 +72,17 @@ export async function startWriter({ root, stateRoot, passwordFile, publish, publ
         const login = url.pathname === '/write/login';
         let html = await readFile(login ? join(directory, 'ui/login.html') : join(sharedUI, 'index.html'), 'utf8');
         if (!login) html = html.replace('<body>', '<body data-mode="remote">').replaceAll('/compose/', '/write/').replace('href="/favicon.svg"', 'href="/write/favicon.svg"').replace('Local publishing', 'Private publishing').replace('Posts appear in your Blog, only on this Mac.', 'Posts appear on your website after publishing.').replace('This local writing tool needs JavaScript. Enable it and open the composer with your laptop shortcut.', 'Enable JavaScript to write and publish.').replace('Up to 15 MB each.', 'Up to 10 MB each.').replace('<span class="scope">Private publishing</span>', '<div class="account-actions"><span class="scope">Private publishing</span><button type="button" class="sign-out" id="sign-out">Sign out</button></div>');
+        html = html.replace('</head>', '<link rel="manifest" href="/write/app.webmanifest"><link rel="apple-touch-icon" href="/write/icon-192.png"><meta name="theme-color" content="#e2e2e2"></head>');
+        if (!login) html = html.replace('<script', '<script src="/write/drafts.js" defer></script><script').replace('id="status"', 'id="status"').replace('</form>', '<p id="draft-status" role="status"></p><button type="button" class="sign-out" id="discard-draft">Discard draft</button></form>');
         bytes = Buffer.from(html); type = 'text/html; charset=utf-8';
       } else if (url.pathname === '/write/composer.css') {
         bytes = Buffer.from((await readFile(join(sharedUI, 'composer.css'), 'utf8')).replaceAll('/compose/', '/write/')); type = 'text/css';
       } else if (url.pathname === '/write/composer.js') { bytes = await readFile(join(sharedUI, 'composer.js')); type = 'text/javascript'; }
       else if (url.pathname === '/write/login.js') { bytes = await readFile(join(directory, 'ui/login.js')); type = 'text/javascript'; }
+      else if (['/write/drafts.js', '/write/app.webmanifest', '/write/icon-192.png', '/write/icon-512.png'].includes(url.pathname)) {
+        bytes = await readFile(join(directory, 'ui', url.pathname.split('/').pop()));
+        type = url.pathname.endsWith('.png') ? 'image/png' : url.pathname.endsWith('.webmanifest') ? 'application/manifest+json' : 'text/javascript';
+      }
       else if (url.pathname === '/write/sentient.woff2') { bytes = await readFile(join(root, 'src/assets/fonts/sentient-variable.woff2')); type = 'font/woff2'; }
       else if (url.pathname === '/write/favicon.svg') { bytes = await readFile(join(root, 'public/favicon.svg')); type = 'image/svg+xml'; }
       else return send(404, { error: 'Not found.' });

@@ -17,9 +17,11 @@ test('the phone editor signs in, attaches photos and publishes without changing 
   const password = 'Isolated-browser-fixture-password';
   await writePasswordFile(passwordFile, password);
   const received = [];
+  let failNext = false, interrupted;
   const { server, origin } = await startWriter({ root, stateRoot, passwordFile, port: 0, insecureLocalhost: true,
     publish: async input => {
       const value = normalisePost(input);
+      if (failNext) { failNext = false; interrupted = value; throw new Error('Isolated simulated interruption'); }
       received.push(value);
       return { title: value.title, route: `/blog/browser-fixture-${received.length}/` };
     },
@@ -52,6 +54,15 @@ test('the phone editor signs in, attaches photos and publishes without changing 
     await page.locator('#photos').setInputFiles({ name: 'fixture.png', mimeType: 'image/png', buffer: picture });
     await page.locator('#photo-list textarea').fill('A grey fixture image.');
     await page.locator('#photo-list img').evaluate(image => image.decode());
+    await page.locator('#draft-status').filter({ hasText: 'Draft saved on this device.' }).waitFor();
+    page.on('dialog', dialog => dialog.accept());
+    await page.reload();
+    await page.waitForFunction(() => !document.querySelector('#publish').disabled);
+    assert.equal(await page.locator('#title').inputValue(), 'Browser fixture ' + width);
+    assert.equal(await page.locator('#photo-list textarea').inputValue(), 'A grey fixture image.');
+    const manifest = await (await context.request.get(origin + '/write/app.webmanifest')).json();
+    assert.equal(manifest.start_url, '/write/');
+    for (const icon of manifest.icons) assert.equal((await context.request.get(origin + icon.src)).status(), 200);
     const layout = await page.evaluate(() => ({
       overflow: document.documentElement.scrollWidth - innerWidth,
       background: getComputedStyle(document.documentElement).backgroundColor,
@@ -66,8 +77,20 @@ test('the phone editor signs in, attaches photos and publishes without changing 
     assert.ok(layout.inputSize >= 16);
     await page.screenshot({ path: join(out, `editor-${width}.png`), fullPage: true });
     const nextPost = received.length + 1;
+    if (width === 390) {
+      failNext = true;
+      await page.getByRole('button', { name: 'Publish post', exact: true }).click();
+      await page.locator('#status.error').waitFor();
+      await page.reload();
+      await page.waitForFunction(() => !document.querySelector('#publish').disabled);
+    }
     await page.getByRole('button', { name: 'Publish post', exact: true }).click();
     await page.waitForURL(origin + `/blog/browser-fixture-${nextPost}/`);
+    if (width === 390) assert.equal(received.at(-1).id, interrupted.id, 'reload preserves the attempted request identity');
+    await page.goto(origin + '/write/');
+    await page.waitForFunction(() => !document.querySelector('#publish').disabled);
+    assert.equal(await page.locator('#title').inputValue(), '');
+    assert.equal(await page.locator('#photo-list textarea').count(), 0);
     assert.equal(errors.length, 0, errors.join('\n'));
     await context.close();
   }

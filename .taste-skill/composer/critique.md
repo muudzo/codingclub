@@ -30,3 +30,14 @@ Layout: login=focused form / editor=existing writing-and-photos grid, stacked on
 Browser verification used a real authenticated session in the isolated Playwright fixture, because the standalone inspector cannot sign in to the private editor. At 1440/768/390, login, image attachment, image description and Publish completed. Automated measurements confirmed no horizontal overflow, the existing ground/accent colours, Sentient CSS and inputs at least 16px. Six screenshots were opened and reviewed. Source lint: 0 FAIL / 0 WARN.
 
 No visual defect requiring a redesign was found. The long phone form scrolls naturally, preserving the original layout. The pictured grey image and post text are isolated test fixtures and were never added to real content. Physical iPhone/Safari testing has not been performed. Home-screen installation and durable draft recovery are the next separate checkpoint.
+
+## Feature 009 home-screen and draft checkpoint — 2026-11-22
+
+Preserved the existing Editorial greeting editor direction, Sentient, grey and oxblood. Added only
+plain draft status/discard controls below the existing form. Real authenticated browser flow at
+1440/768/390 verifies no horizontal overflow, existing colours/font and 16px-or-larger title input.
+All three editor screenshots reviewed; layout remains readable with stacked photo controls on phone.
+Draft reload restores text, photo description and original photo bytes; successful submission clears
+storage. No new imagery, ornamental UI, animations or redesign. Physical iPhone Safari installation
+remains a user-device check after server rollout. Word count restoration corrected after screenshot
+review showed zero words for the restored draft.

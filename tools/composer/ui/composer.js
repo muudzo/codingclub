@@ -1,5 +1,5 @@
 // Keep these names scoped to this script rather than the browser's legacy globals.
-(() => {
+(async () => {
 const form = document.querySelector('#post-form');
 const fields = document.querySelector('#fields');
 const title = document.querySelector('#title');
@@ -15,6 +15,17 @@ if (token) sessionStorage.setItem('composer-token', token);
 history.replaceState(null, '', location.pathname);
 let id = crypto.randomUUID(), csrf, attempted = false;
 let photos = [], busy = false, dirty = false;
+let draftQueue = Promise.resolve(), draftTimer, draftReady = false, completed = false;
+const draftStatus = document.querySelector('#draft-status');
+function saveDraft() {
+  if (!remote || !draftReady || completed) return draftQueue;
+  clearTimeout(draftTimer);
+  const snapshot = { id, attempted, title: title.value, text: text.value, photos: photos.map(photo => ({ key: photo.key, alt: photo.alt, file: photo.file })) };
+  draftQueue = draftQueue.then(() => window.WriterDraft.save(snapshot)).then(() => {
+    draftStatus.textContent = 'Draft saved on this device.';
+  }).catch(() => { draftStatus.textContent = 'Draft could not be saved on this device. Keep this page open.'; });
+  return draftQueue;
+}
 const imageBytes = (remote ? 10 : 15) * 1024 * 1024;
 document.querySelector('#today').textContent = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
 
@@ -27,6 +38,11 @@ function message(value, error = false) {
 function markDirty() {
   dirty = true;
   if (attempted) { id = crypto.randomUUID(); attempted = false; }
+  if (remote && draftReady) { draftStatus.textContent = 'Saving draft…'; clearTimeout(draftTimer); draftTimer = setTimeout(saveDraft, 200); }
+}
+function countWords() {
+  const count = text.value.trim().split(/\s+/).filter(Boolean).length;
+  document.querySelector('#words').textContent = `${count} ${count === 1 ? 'word' : 'words'}`;
 }
 function renderPhotos() {
   list.replaceChildren();
@@ -55,8 +71,7 @@ input.addEventListener('change', () => {
 });
 form.addEventListener('input', () => {
   markDirty();
-  const count = text.value.trim().split(/\s+/).filter(Boolean).length;
-  document.querySelector('#words').textContent = `${count} ${count === 1 ? 'word' : 'words'}`;
+  countWords();
 });
 form.addEventListener('submit', async event => {
   event.preventDefault();
@@ -68,11 +83,14 @@ form.addEventListener('submit', async event => {
   for (const photo of photos) { data.append('photos', photo.file); data.append('alt', photo.alt); }
   attempted = true;
   busy = true; fields.disabled = true; publish.disabled = true; publish.textContent = 'Publishing…';
+  await saveDraft();
   message('Preparing your post and photographs. This can take a moment.');
   try {
     const response = await fetch(remote ? '/write/api/publish' : '/api/publish', { method: 'POST', headers: remote ? { 'X-Writer-CSRF': csrf } : { 'X-Composer-Token': token }, body: data });
     const result = await response.json().catch(() => ({ error: 'The connection was interrupted. Retry this draft to check whether it published.' }));
     if (!response.ok || typeof result.url !== 'string') throw new Error(result.error || 'Your post could not be published. Try again.');
+    completed = true; clearTimeout(draftTimer);
+    if (remote) { await draftQueue; await window.WriterDraft.clear().catch(() => {}); }
     dirty = false; busy = false; message('Published. Opening your post…');
     location.assign(result.url);
   } catch (error) {
@@ -86,7 +104,26 @@ document.addEventListener('keydown', event => {
 });
 window.addEventListener('beforeunload', event => { if (dirty || busy) event.preventDefault(); });
 if (remote) {
+  fields.disabled = true;
   publish.disabled = true;
+  try {
+    const draft = await window.WriterDraft.load();
+    if (draft) {
+      id = draft.id; attempted = draft.attempted; title.value = draft.title; text.value = draft.text;
+      photos = draft.photos.filter(photo => photo.file).map(photo => ({ ...photo, url: URL.createObjectURL(photo.file) }));
+      dirty = true; renderPhotos(); countWords(); draftStatus.textContent = 'Draft restored from this device.';
+    }
+  } catch { draftStatus.textContent = 'Draft storage is unavailable. Keep this page open while writing.'; }
+  draftReady = true; fields.disabled = false;
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveDraft(); });
+  document.querySelector('#discard-draft').addEventListener('click', async () => {
+    if (busy || !confirm('Discard this draft and its attached photos from this device?')) return;
+    clearTimeout(draftTimer); await draftQueue;
+    try { await window.WriterDraft.clear(); }
+    catch { return message('The saved draft could not be removed. Please try again.', true); }
+    photos.forEach(photo => URL.revokeObjectURL(photo.url)); photos = []; title.value = ''; text.value = '';
+    id = crypto.randomUUID(); attempted = false; dirty = false; renderPhotos(); countWords(); draftStatus.textContent = 'Draft discarded.';
+  });
   fetch('/write/api/session').then(async response => {
     if (!response.ok) throw new Error('Sign in again before publishing. Keep this draft open.');
     csrf = (await response.json()).csrf;
@@ -95,9 +132,10 @@ if (remote) {
   document.querySelector('#sign-out').addEventListener('click', async () => {
     if (!csrf || busy) return;
     try {
+      await saveDraft();
       const response = await fetch('/write/api/logout', { method: 'POST', headers: { 'X-Writer-CSRF': csrf } });
       if (!response.ok) throw new Error('Sign-out did not finish. Please try again.');
-      location.assign('/write/login');
+      dirty = false; location.assign('/write/login');
     } catch (error) { message(error.message, true); }
   });
 } else if (!token) message('Open this composer using your laptop shortcut to publish a post.', true);

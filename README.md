@@ -158,3 +158,13 @@ sudo bash /opt/tatenda-writer/current/tools/hosting/rollback-writer.sh
 Setup keeps configuration backups in `/var/backups/tatenda-writer.*` and previous public output
 under `/var/www/tatendanyemudzo.com/previous-*`. Do not delete private state or GitHub content
 when reverting a code checkpoint. Inspect service failures with `sudo journalctl -u tatenda-writer`.
+
+After successful setup, open `https://tatendanyemudzo.com/write/` on your phone and sign in.
+On iPhone, use Safari → Share → Add to Home Screen → Open as Web App → Add. On Android,
+use Chrome's menu → Add to Home screen (or Install app). The home-screen icon opens the private
+editor; it needs internet to sign in and publish. There is no app-store download.
+
+One draft, including attached photographs, is saved in this browser's IndexedDB. Wait for
+“Draft saved on this device” before closing. Drafts do not sync between devices/browsers and
+may be removed by clearing browser data or private browsing. Use Discard draft to remove it.
+A failed submission retains its retry identity; successful publication clears the completed draft.
