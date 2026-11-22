@@ -134,7 +134,12 @@ PY
   local astro_bin
   astro_bin=$("$node" -e 'console.log(JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).bin.astro)' "$release/node_modules/astro/package.json")
   rm -rf -- "$staging"
-  runuser -u "$WRITER_USER" -- env SITE_URL=https://tatendanyemudzo.com BASE_PATH=/ WRITER_ASTRO_CACHE_DIR="$DATA/state/deployment-cache" "$node" "$release/node_modules/astro/$astro_bin" build --root "$release" --outDir "$staging"
+  # Astro uses process.cwd() for prerender chunks when outDir is external.
+  # --root alone does not move it out of the SSH user's private home.
+  (
+    cd "$release"
+    runuser -u "$WRITER_USER" -- env ASTRO_TELEMETRY_DISABLED=1 SITE_URL=https://tatendanyemudzo.com BASE_PATH=/ WRITER_ASTRO_CACHE_DIR="$DATA/state/deployment-cache" "$node" "$release/node_modules/astro/$astro_bin" build --root "$release" --outDir "$staging"
+  )
   [[ -f "$staging/index.html" ]] || { echo 'The build did not produce a homepage.' >&2; false; }
   chmod -R u=rwX,go=rX "$staging"
   if [[ ! -f "$DATA/owner.json" ]]; then
