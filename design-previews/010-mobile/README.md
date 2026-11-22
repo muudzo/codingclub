@@ -70,3 +70,5 @@ logs. Do not insert a third-party tracking/comment widget by default.
   keyboard. The live owner session, comments and likes remain implementation tasks.
 - Existing feature009 publication fails on Ubuntu; persistent private diagnostics are deployed.
   Resolve that failure before layering new production flows on top.
+
+User refinement: hamburger navigation with a24px icon, accessible Navigation menu name, and at least44px tap area. The native details/summary control retains expandable semantics and all destinations.
