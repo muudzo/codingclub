@@ -71,7 +71,7 @@ export function createGitPublisher({ repository, stateRoot, publicRoot, dependen
           if (!expected.equals(await readFile(join(tree, 'package-lock.json')))) throw new PublishError('Deploy the latest site dependencies before publishing this draft.', 409);
           await symlink(join(dependenciesRoot, 'node_modules'), join(tree, 'node_modules'), 'dir');
           const publish = createPublisher({ root: tree, stateRoot, publicRoot, resume: true, now: () => new Date(request.date),
-            build: (root, output) => build(root, output, { env: { SITE_URL: siteUrl, BASE_PATH: '/', WRITER_ASTRO_CACHE_DIR: join(tree, '.writer-cache') } }),
+            build: (root, output) => build(root, output, { logFile: join(stateRoot, 'last-build.log'), remote: true, env: { SITE_URL: siteUrl, BASE_PATH: '/', WRITER_ASTRO_CACHE_DIR: join(tree, '.writer-cache') } }),
             beforeActivate: async ({ root, output, post: file, assets }) => {
               assertHeld();
               const paths = [relative(root, file), ...(assets ? [relative(root, assets)] : [])];
