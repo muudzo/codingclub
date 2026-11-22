@@ -3,7 +3,7 @@ import { promisify } from 'node:util';
 import { mkdir, readFile, writeFile, readdir, rm, rename } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { PublishError } from '../composer/publish.mjs';
+import { PublishError } from '../composer/errors.mjs';
 
 const derive = promisify(scrypt);
 const scryptOptions = { N: 131072, r: 8, p: 1, maxmem: 256 * 1024 * 1024 };

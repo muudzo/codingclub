@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { PublishError } from '../composer/publish.mjs';
+import { PublishError } from '../composer/errors.mjs';
 
 export async function withPublishingLock(path, work) {
   await mkdir(dirname(path), { recursive: true, mode: 0o700 });

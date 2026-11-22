@@ -3,15 +3,14 @@ import { spawn } from 'node:child_process';
 import { mkdir, readFile, writeFile, rename, rm, access, readdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { createRequire } from 'node:module';
+import { PublishError } from './errors.mjs';
+export { PublishError } from './errors.mjs';
 
 // Reuse the image processor installed with Astro, without a second image toolchain.
 const require = createRequire(import.meta.url);
 const sharp = require(require.resolve('sharp', { paths: [require.resolve('astro/package.json')] }));
 export const limits = { photos: 8, imageBytes: 15 * 1024 * 1024, bodyBytes: 125 * 1024 * 1024, text: 20000, title: 120 };
 
-export class PublishError extends Error {
-  constructor(message, status = 400) { super(message); this.status = status; }
-}
 const exists = async path => access(path).then(() => true, () => false);
 
 export function runBuild(root, output, { env = {} } = {}) {

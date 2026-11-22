@@ -10,6 +10,7 @@ task_phase="$task_state/deploy.phase"
 task_ssh_log="$task_state/deploy.ssh.log"
 task_sock="$task_state/ssh-deploy.sock"
 tarball="$task_state/tatendanyemudzo-dist.tar.gz"
+source_archive="$task_state/website-source.tar.gz"
 umask 077
 
 if [[ -f "$task_log" ]]; then
@@ -19,6 +20,15 @@ rm -f -- "$task_status" "$task_sock"
 
 echo "=== Deploying tatendanyemudzo.com to Ubuntu Server (192.168.2.28) ==="
 echo ""
+
+cd "$task_root" || exit 1
+[[ "$(git branch --show-current)" == main && -z "$(git status --porcelain)" ]] || { echo 'Deploy only committed, validated main. Merge your feature branch first.' >&2; exit 1; }
+git fetch origin main || exit 1
+git merge --ff-only origin/main || { echo 'Synchronise phone posts and resolve the branch before deploying.' >&2; exit 1; }
+task_revision=$(git rev-parse HEAD)
+[[ "$task_revision" == "$(git rev-parse origin/main)" ]] || { echo 'Push main to GitHub before deploying.' >&2; exit 1; }
+git archive --format=tar.gz --output="$source_archive" HEAD || exit 1
+task_remote="/tmp/tatenda-deploy-${task_revision}-${RANDOM}"
 
 # Step 1: Build the static website
 printf 'building\n' > "$task_phase"
@@ -57,7 +67,7 @@ printf 'connecting\n' > "$task_phase"
 
 cleanup_ssh() {
   /usr/bin/ssh -O exit -o ControlPath="$task_sock" muudzo@192.168.2.28 2>/dev/null || true
-  rm -f -- "$task_sock" "$tarball"
+  rm -f -- "$task_sock" "$tarball" "$source_archive"
 }
 trap cleanup_ssh EXIT
 
@@ -73,12 +83,13 @@ ssh_opts=(
 
 {
   echo "--- Step: Establishing SSH connection and transferring files ---"
-  /usr/bin/scp "${ssh_opts[@]}" "$tarball" muudzo@192.168.2.28:/tmp/tatendanyemudzo-dist.tar.gz || exit 1
-  /usr/bin/scp "${ssh_opts[@]}" "$task_root/tools/hosting/server-deploy.sh" muudzo@192.168.2.28:/tmp/server-deploy.sh || exit 1
+  /usr/bin/ssh "${ssh_opts[@]}" muudzo@192.168.2.28 "mkdir -m 700 '$task_remote'" || exit 1
+  /usr/bin/scp "${ssh_opts[@]}" "$tarball" "$source_archive" "$task_root/tools/hosting/server-deploy.sh" "$task_root/tools/hosting/writer-install.sh" "$task_root/tools/hosting/update-caddy.py" "muudzo@192.168.2.28:$task_remote/" || exit 1
 
   echo ""
   echo "--- Step: Executing remote deployment script with sudo ---"
-  /usr/bin/ssh "${ssh_opts[@]}" -t muudzo@192.168.2.28 'sudo bash /tmp/server-deploy.sh /tmp/tatendanyemudzo-dist.tar.gz && rm -f /tmp/server-deploy.sh'
+  /usr/bin/ssh "${ssh_opts[@]}" -t muudzo@192.168.2.28 "sudo bash '$task_remote/server-deploy.sh' '$task_remote/tatendanyemudzo-dist.tar.gz' '$task_revision' '$task_remote/website-source.tar.gz' '$task_remote/writer-install.sh'" || exit 1
+  /usr/bin/ssh "${ssh_opts[@]}" muudzo@192.168.2.28 "rm -rf -- '$task_remote'"
 } 2>&1 | /usr/bin/tee "$task_log"
 
 task_exit=${pipestatus[1]}

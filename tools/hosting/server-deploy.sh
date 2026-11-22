@@ -4,6 +4,10 @@
 set -euo pipefail
 
 TARBALL="${1:-/tmp/tatendanyemudzo-dist.tar.gz}"
+REVISION="${2:-}"
+SOURCE_ARCHIVE="${3:-}"
+WRITER_INSTALL="${4:-}"
+SCRIPT_DIR=$(cd -- "$(dirname -- "$0")" && pwd)
 WEB_ROOT="/var/www/tatendanyemudzo.com"
 CADDYFILE="/etc/caddy/Caddyfile"
 
@@ -16,6 +20,16 @@ if [[ "$ID" != ubuntu ]]; then
   echo "Error: Expected Ubuntu; found $ID. Aborting." >&2
   exit 1
 fi
+
+if [[ -f /etc/tatenda-writer/enabled ]]; then
+  [[ "$REVISION" =~ ^[a-f0-9]{40}$ && -f "$SOURCE_ARCHIVE" && -f "$WRITER_INSTALL" ]] || { echo 'Writer deployments require the committed source archive. The public site was not changed.' >&2; exit 1; }
+  exec bash "$WRITER_INSTALL" update "$REVISION" "$SOURCE_ARCHIVE"
+fi
+if [[ -f /etc/tatenda-writer/config.json ]]; then
+  echo 'Writer setup is incomplete or disabled. Finish setup or use the documented rollback before a static deployment.' >&2
+  exit 1
+fi
+if [[ -d "$WEB_ROOT/current" ]]; then WEB_ROOT="$WEB_ROOT/current"; fi
 
 if [[ ! -f "$TARBALL" ]]; then
   echo "Error: Tarball $TARBALL not found." >&2
@@ -49,52 +63,13 @@ else
   touch "$CADDYFILE"
 fi
 
-SITE_BLOCK=$(cat <<'CADDY_EOF'
-# BEGIN tatendanyemudzo.com
-http://tatendanyemudzo.com, http://www.tatendanyemudzo.com {
-    root * /var/www/tatendanyemudzo.com
-    file_server
-    encode zstd gzip
-
-    header {
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "DENY"
-        Referrer-Policy "strict-origin-when-cross-origin"
-    }
-
-    handle_errors {
-        @404 {
-            expression {http.error.status_code} == 404
-        }
-        rewrite @404 /404.html
-        file_server
-    }
-}
-# END tatendanyemudzo.com
-CADDY_EOF
-)
-
-python3 - <<PY
-from pathlib import Path
-import re
-
-caddyfile_path = Path("$CADDYFILE")
-content = caddyfile_path.read_text() if caddyfile_path.exists() else ""
-
-block = """$SITE_BLOCK"""
-
-pattern = re.compile(r'# BEGIN tatendanyemudzo\.com.*?# END tatendanyemudzo\.com\n?', re.DOTALL)
-if pattern.search(content):
-    new_content = pattern.sub(block + "\n", content)
-else:
-    new_content = content.rstrip() + "\n\n" + block + "\n" if content.strip() else block + "\n"
-
-caddyfile_path.write_text(new_content)
-PY
-
 echo "Validating Caddy configuration..."
-caddy validate --config "$CADDYFILE" --adapter caddyfile
+candidate=$(mktemp /etc/caddy/tatenda-candidate.XXXXXX)
+trap 'rm -f -- "$candidate"' EXIT
+cp "$CADDYFILE" "$candidate"
+python3 "$SCRIPT_DIR/update-caddy.py" --config "$candidate" --root "$WEB_ROOT"
+caddy validate --config "$candidate" --adapter caddyfile
+cp "$candidate" "$CADDYFILE"
 
 echo "Applying configuration to Caddy..."
 if ! systemctl reload caddy 2>/dev/null; then

@@ -1,11 +1,12 @@
 import { createServer } from 'node:http';
 import { isIP } from 'node:net';
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createAuth, equalSecret } from './auth.mjs';
 import { createGitPublisher, recoverPublicOutput } from './git-publish.mjs';
 import { withPublishingLock } from './lock.mjs';
+import { sshEnvironment } from './git.mjs';
 import { readBody, readPostForm } from '../composer/uploads.mjs';
 import { PublishError } from '../composer/publish.mjs';
 
@@ -96,10 +97,13 @@ export async function startWriter({ root, stateRoot, passwordFile, publish, publ
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const config = JSON.parse(await readFile(process.env.WRITER_CONFIG || '/etc/tatenda-writer/config.json', 'utf8'));
-  for (const key of ['keyFile', 'knownHostsFile']) if (!/^\/[a-zA-Z0-9/_.-]+$/.test(config[key] || '')) throw new Error('Writer SSH paths must be absolute paths without shell metacharacters.');
   const root = resolve(directory, '../..');
-  const gitEnv = { GIT_SSH_COMMAND: `ssh -i ${config.keyFile} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=${config.knownHostsFile}` };
-  await withPublishingLock(join(config.stateRoot, 'publish.lock'), () => recoverPublicOutput(config.publicRoot));
+  const gitEnv = sshEnvironment(config);
+  try { await stat(config.publicRoot); }
+  catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+    await withPublishingLock(join(config.stateRoot, 'publish.lock'), () => recoverPublicOutput(config.publicRoot));
+  }
   const publish = createGitPublisher({ ...config, dependenciesRoot: root, siteUrl: config.publicOrigin, gitEnv });
   await startWriter({ ...config, root, publish });
   console.log('Private publishing service is listening on loopback.');

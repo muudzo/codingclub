@@ -15,7 +15,8 @@
     "check": "astro check",
     "test": "node --test tests/*.test.mjs",
     "test:writer:browser": "node --test tests/writer.browser.mjs",
-    "deploy:ubuntu": "open 'tools/hosting/Deploy Website to Ubuntu.command'"
+    "deploy:ubuntu": "open 'tools/hosting/Deploy Website to Ubuntu.command'",
+    "setup:writer": "open 'tools/hosting/Setup Phone Publishing.command'"
   },
   "dependencies": {
     "astro": "7.4.13"

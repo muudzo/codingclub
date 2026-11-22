@@ -1,0 +1,25 @@
+[Unit]
+Description=Tatenda private phone publishing
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=tatenda-writer
+Group=tatenda-writer
+WorkingDirectory=/opt/tatenda-writer/current
+Environment=PATH=/opt/tatenda-writer/runtime/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/opt/tatenda-writer/runtime/bin/node /opt/tatenda-writer/current/tools/writer/server.mjs
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/tatenda-writer /var/www/tatendanyemudzo.com
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
