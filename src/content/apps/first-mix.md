@@ -1,8 +1,8 @@
 ---
 title: "First Mix"
-description: "An iPad-ready DJ learning PWA with dual Web Audio decks, guided lessons, local track import, and offline practice."
+description: "Learn how to DJ right in your browser or on an iPad—no controller, account, or setup needed."
 published: true
-platform: "Web PWA & iPad"
+platform: "iPad & Web Browser"
 logo:
   image: ../../assets/apps/first-mix-logo.png
   alt: "First Mix app icon"
@@ -13,10 +13,6 @@ downloads:
 
 ## About the app
 
-First Mix is a zero-backend DJ learning progressive web app built on the Web Audio API. Learners practice beatmatching, cueing, and transitions on two independent audio decks with no server or account required.
+First Mix gives you two decks, a crossfader, and guided lessons so you can practice matching beats and blending songs from scratch.
 
-## Key capabilities
-
-- **Dual decks & mixer:** Play/pause, waveform seek, set/return cue, ±20% tempo, phase/tempo sync, 4/8/16-beat loops, 25 ms nudges, 3-band EQ, and equal-power crossfader.
-- **Guided lessons & starter crate:** Four event-driven exercises plus seven openly licensed starter tracks across house, Afrobeat/amapiano, and hip-hop.
-- **Offline local imports:** Import MP3, WAV, or M4A files directly into IndexedDB with manual BPM/downbeat editing and full offline app shell support.
+It comes with starter tracks ready to mix, or you can load your own MP3s and practice offline anytime.

@@ -1,8 +1,8 @@
 ---
 title: "Motocross GP"
-description: "A side-view, physics-driven 3D motocross racer for the browser with AI riders and a three-round championship."
+description: "A fast 3D dirt-bike racing game you can play straight in your browser against five computer riders."
 published: true
-platform: "Web (Three.js / WebGL2)"
+platform: "Web Browser"
 logo:
   image: ../../assets/apps/motocross-gp-logo.svg
   alt: "Motocross GP number-plate icon"
@@ -13,10 +13,6 @@ downloads:
 
 ## About the app
 
-Motocross GP puts you at the starting gate against five AI riders across two-lap, jump-filled dirt tracks in a three-round Grand Prix championship. The default view renders a lit 3D world with sunset, forest, and floodlit-night venues, plus a one-click Classic 2D poster mode.
+Line up at the starting gate, hit dirt jumps, and race through a three-round championship across sunset, forest, and floodlit night tracks.
 
-## Simulation & controls
-
-- **Physics:** Rigid chassis on sprung wheels with traction, wheelies, nose-dives, and suspension compression on every landing—the AI riders drive the exact same physics model.
-- **Controls:** Supports keyboard, gamepad, and touch controls.
-- **Tech stack:** TypeScript, Three.js / WebGL2, Vite, and Playwright end-to-end tests.
+The bike leans, wheelies, and bounces like a real dirt bike, and you can switch to a classic 2D poster look or play with a keyboard, controller, or touch screen.
