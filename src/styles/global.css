@@ -379,6 +379,28 @@ main:focus {
   gap: 20px;
 }
 
+.entry-title-group,
+.detail-title-group {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.app-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  object-fit: contain;
+  flex: none;
+  background: var(--surface);
+}
+
+.app-logo-lg {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+}
+
 .entry-title-row h2 {
   font-size: clamp(1.75rem,3vw,3rem);
   line-height: 1.15;
@@ -661,6 +683,15 @@ main:focus {
   }
   .entry-title-row {
     display: block;
+  }
+  .detail-title-group {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .app-logo-lg {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
   }
   .entry-title-row time {
     display: block;
