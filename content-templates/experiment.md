@@ -21,7 +21,7 @@ What are you exploring, and who might it help?
 
 What made you curious about this problem?
 
-## What I’ve tried
+## Technical details
 
 Share research, sketches, experiments, or working features. Credit any work you build on and explain your contribution.
 

@@ -14,7 +14,7 @@ repositoryUrl: https://github.com/muudzo/zim-prospect
 
 Geological exploration tools are often locked behind expensive proprietary datasets. I wanted to see how far open data alone—with no API keys—can go toward reproducible, validated prospectivity screening.
 
-## What I’ve tried
+## Technical details
 
 - Built a Python pipeline that caches open datasets, extracts terrain and spectral features (including 30 m Copernicus DEM and Sentinel-2 imagery at finer resolutions), and scores target zones.
 - Added fuzzy-weight tuning, high-resolution zoom anomalies (`10–20 m`) inside top targets, and `pytest` validation checks.

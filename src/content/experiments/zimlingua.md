@@ -14,7 +14,7 @@ ZimLingua is an offline, CPU-friendly neural machine translation tool focused on
 
 Most translation tools require constant internet access and prioritize high-resource languages. Running quantized models locally makes translation practical on everyday laptops and offline devices.
 
-## What I’ve tried
+## Technical details
 
 - Built a modular Python 3.9+ architecture separating data normalization, LoRA fine-tuning, CTranslate2 Int8 inference, and user interface layers.
 - Quantized Meta's NLLB-200 model for fast CPU inference and added an automated test suite.
