@@ -12,7 +12,10 @@ const { entries, section } = Astro.props;
       <a class="entry-link" href={entryHref(section, entry.id)}>
         {entry.collection === 'photography' && <Image src={entry.data.image} alt={entry.data.alt} width={Math.min(960, entry.data.image.width)} widths={[320, 640, 960].filter(w => w <= entry.data.image.width)} sizes="(max-width: 700px) 90vw, 45vw" format="webp" loading="lazy" />}
         <div class="entry-title-row">
-          <h2>{entry.data.title}</h2>
+          <div class="entry-title-group">
+            {entry.collection === 'apps' && entry.data.logo && <Image src={entry.data.logo.image} alt={entry.data.logo.alt} width={56} height={56} class="app-logo" loading="eager" />}
+            <h2>{entry.data.title}</h2>
+          </div>
           {entry.data.date && <time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date)}</time>}
         </div>
         {entry.collection === 'music' && <p class="artist">{entry.data.artist}</p>}

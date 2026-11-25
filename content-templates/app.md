@@ -4,6 +4,10 @@ description: "Explain what your app does in one sentence."
 published: false
 version: "1.0.0"
 platform: "macOS"
+# Optional app icon or logo:
+# logo:
+#   image: ../../assets/apps/your-app-logo.png
+#   alt: Your app icon
 downloads:
   - label: "Download for macOS"
     url: "https://example.com/replace-with-your-real-download"

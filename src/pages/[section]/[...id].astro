@@ -19,7 +19,10 @@ const { Content } = await render(entry);
   <article class="frame detail-page">
     <a class="back-link" href={href(`${section.id}/`)}>Back to {section.title.toLowerCase()}</a>
     <header class="page-heading">
-      <h1>{entry.data.title}</h1>
+      <div class="detail-title-group">
+        {entry.collection === 'apps' && entry.data.logo && <Image src={entry.data.logo.image} alt={entry.data.logo.alt} width={72} height={72} class="app-logo app-logo-lg" loading="eager" />}
+        <h1>{entry.data.title}</h1>
+      </div>
       <p>{entry.data.description}</p>
       <div class="entry-meta">
         {entry.collection === 'experiments' && <span class="experiment-stage">{experimentStages[entry.data.stage].label}</span>}
