@@ -14,10 +14,11 @@ const load = (folder: string) => glob({ pattern: '**/*.md', base: `./src/content
 
 const apps = defineCollection({
   loader: load('apps'),
-  schema: z.object({
+  schema: ({ image }) => z.object({
     ...common,
     version: z.string().optional(),
     platform: z.string().optional(),
+    logo: z.object({ image: image(), alt: z.string().trim().min(1) }).optional(),
     downloads: z.array(z.object({ label: z.string().trim().min(1), url: httpsUrl })).min(1),
   }),
 });
