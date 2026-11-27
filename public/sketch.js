@@ -10,12 +10,15 @@
   const MAX_POINTS = 500;
 
   let tool = 'pen';
+  let mirror = 'none';
   let color = '#7d0c14';
   let width = 5;
   let strokes = [];
   let activeStroke = null;
+  let moveDrag = null;
   let submitting = false;
 
+  const canvasWrap = canvas.closest('.sketch-canvas-wrap');
   const statusEl = document.getElementById('sketch-status');
   const formEl = document.getElementById('sketch-submit-form');
   const submitBtn = document.getElementById('sketch-submit-btn');
@@ -75,18 +78,114 @@
     ctx.stroke();
   }
 
+  function transformStroke(s, flipX, flipY) {
+    const tx = x => (flipX ? round1(WIDTH - x) : x);
+    const ty = y => (flipY ? round1(HEIGHT - y) : y);
+    if (s.tool === 'pen') {
+      return { tool: 'pen', color: s.color, width: s.width, points: s.points.map(([x, y]) => [tx(x), ty(y)]) };
+    }
+    return {
+      tool: s.tool,
+      color: s.color,
+      width: s.width,
+      from: [tx(s.from[0]), ty(s.from[1])],
+      to: [tx(s.to[0]), ty(s.to[1])],
+    };
+  }
+
+  function expandSymmetry(s) {
+    if (mirror === 'horizontal') {
+      return [s, transformStroke(s, true, false)];
+    }
+    if (mirror === 'kaleidoscope') {
+      return [
+        s,
+        transformStroke(s, true, false),
+        transformStroke(s, false, true),
+        transformStroke(s, true, true),
+      ];
+    }
+    return [s];
+  }
+
+  function getStrokesBounds(list) {
+    let minX = WIDTH;
+    let maxX = 0;
+    let minY = HEIGHT;
+    let maxY = 0;
+    const visit = ([x, y]) => {
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    };
+    for (const s of list) {
+      if (s.tool === 'pen') {
+        s.points.forEach(visit);
+      } else {
+        visit(s.from);
+        visit(s.to);
+      }
+    }
+    return { minX, maxX, minY, maxY };
+  }
+
+  function translateStroke(s, dx, dy) {
+    const shift = ([x, y]) => [
+      Math.max(0, Math.min(WIDTH, round1(x + dx))),
+      Math.max(0, Math.min(HEIGHT, round1(y + dy))),
+    ];
+    if (s.tool === 'pen') {
+      return { ...s, points: s.points.map(shift) };
+    }
+    return { ...s, from: shift(s.from), to: shift(s.to) };
+  }
+
+  function drawGuides() {
+    if (mirror === 'none') return;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(125, 12, 20, 0.24)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.moveTo(WIDTH / 2, 0);
+    ctx.lineTo(WIDTH / 2, HEIGHT);
+    if (mirror === 'kaleidoscope') {
+      ctx.moveTo(0, HEIGHT / 2);
+      ctx.lineTo(WIDTH, HEIGHT / 2);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
   function redraw() {
     ctx.fillStyle = '#f4f4f4';
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    drawGuides();
     for (const s of strokes) drawStroke(s);
-    if (activeStroke) drawStroke(activeStroke);
+    if (activeStroke) {
+      for (const s of expandSymmetry(activeStroke)) drawStroke(s);
+    }
   }
 
   redraw();
 
   canvas.addEventListener('pointerdown', event => {
     if (event.button !== 0 && event.pointerType === 'mouse') return;
-    if (strokes.length >= MAX_STROKES) {
+    if (tool === 'move') {
+      if (!strokes.length) return;
+      canvas.setPointerCapture(event.pointerId);
+      const pt = canvasPoint(event);
+      const snapshot = strokes.map(s => (
+        s.tool === 'pen'
+          ? { ...s, points: s.points.map(([x, y]) => [x, y]) }
+          : { ...s, from: [...s.from], to: [...s.to] }
+      ));
+      moveDrag = { start: pt, snapshot, bounds: getStrokesBounds(snapshot) };
+      return;
+    }
+    const needed = mirror === 'kaleidoscope' ? 4 : mirror === 'horizontal' ? 2 : 1;
+    if (strokes.length + needed > MAX_STROKES) {
       setStatus(`Limit of ${MAX_STROKES} strokes reached. Undo or clear to continue.`, true);
       return;
     }
@@ -99,6 +198,16 @@
   });
 
   canvas.addEventListener('pointermove', event => {
+    if (moveDrag) {
+      const pt = canvasPoint(event);
+      const rawDx = pt[0] - moveDrag.start[0];
+      const rawDy = pt[1] - moveDrag.start[1];
+      const dx = round1(Math.max(-moveDrag.bounds.minX, Math.min(WIDTH - moveDrag.bounds.maxX, rawDx)));
+      const dy = round1(Math.max(-moveDrag.bounds.minY, Math.min(HEIGHT - moveDrag.bounds.maxY, rawDy)));
+      strokes = moveDrag.snapshot.map(s => translateStroke(s, dx, dy));
+      redraw();
+      return;
+    }
     if (!activeStroke) return;
     const pt = canvasPoint(event);
     if (activeStroke.tool === 'pen') {
@@ -113,8 +222,14 @@
   });
 
   function finishStroke() {
+    if (moveDrag) {
+      moveDrag = null;
+      return;
+    }
     if (!activeStroke) return;
-    strokes.push(activeStroke);
+    for (const s of expandSymmetry(activeStroke)) {
+      if (strokes.length < MAX_STROKES) strokes.push(s);
+    }
     activeStroke = null;
     redraw();
   }
@@ -126,6 +241,15 @@
     btn.addEventListener('click', () => {
       tool = btn.getAttribute('data-tool') || 'pen';
       document.querySelectorAll('[data-tool]').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+      canvasWrap?.classList.toggle('is-move-tool', tool === 'move');
+    });
+  });
+
+  document.querySelectorAll('[data-mirror]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      mirror = btn.getAttribute('data-mirror') || 'none';
+      document.querySelectorAll('[data-mirror]').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+      redraw();
     });
   });
 

@@ -835,6 +835,10 @@ main:focus {
   cursor: crosshair;
 }
 
+.sketch-canvas-wrap.is-move-tool #sketch-canvas {
+  cursor: move;
+}
+
 .sketch-actions {
   margin-top: 20px;
   display: grid;
