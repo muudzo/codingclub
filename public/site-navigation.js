@@ -29,4 +29,96 @@
   window.addEventListener('pageshow', checkOwner);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkOwner(); });
   checkOwner();
+
+  const photoList = document.querySelector('.photo-list');
+  if (photoList) {
+    const overlay = document.querySelector('.darkroom-overlay');
+    const openBtn = document.querySelector('.darkroom-open');
+    const closeBtn = overlay?.querySelector('.darkroom-close');
+    const prevBtn = overlay?.querySelector('.darkroom-prev');
+    const nextBtn = overlay?.querySelector('.darkroom-next');
+    const stageImg = overlay?.querySelector('.darkroom-image');
+    const stageTitle = overlay?.querySelector('.darkroom-title');
+    const counter = overlay?.querySelector('.darkroom-counter');
+    const cards = [...photoList.querySelectorAll('.entry-link')];
+    const photos = cards
+      .map(card => {
+        const img = card.querySelector('img');
+        const heading = card.querySelector('h2');
+        if (!img) return null;
+        return {
+          src: img.currentSrc || img.getAttribute('src') || '',
+          srcset: img.getAttribute('srcset') || '',
+          alt: img.getAttribute('alt') || '',
+          title: heading ? heading.textContent.trim() : '',
+        };
+      })
+      .filter(Boolean);
+
+    if (overlay && openBtn && closeBtn && prevBtn && nextBtn && stageImg && stageTitle && counter && photos.length > 0) {
+      let currentIndex = 0;
+      let lastFocused = null;
+
+      function renderPhoto(index) {
+        currentIndex = (index + photos.length) % photos.length;
+        const item = photos[currentIndex];
+        stageImg.setAttribute('src', item.src);
+        if (item.srcset) stageImg.setAttribute('srcset', item.srcset);
+        else stageImg.removeAttribute('srcset');
+        stageImg.setAttribute('sizes', '92vw');
+        stageImg.setAttribute('alt', item.alt);
+        stageTitle.textContent = item.title;
+        counter.textContent = `${currentIndex + 1} / ${photos.length}`;
+        const single = photos.length <= 1;
+        prevBtn.disabled = single;
+        nextBtn.disabled = single;
+      }
+
+      function openDarkroom(index = 0) {
+        lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : openBtn;
+        renderPhoto(index);
+        overlay.hidden = false;
+        document.body.classList.add('has-darkroom-open');
+        closeBtn.focus();
+      }
+
+      function closeDarkroom() {
+        if (overlay.hidden) return;
+        overlay.hidden = true;
+        document.body.classList.remove('has-darkroom-open');
+        if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+      }
+
+      openBtn.addEventListener('click', () => openDarkroom(0));
+      closeBtn.addEventListener('click', closeDarkroom);
+      prevBtn.addEventListener('click', () => renderPhoto(currentIndex - 1));
+      nextBtn.addEventListener('click', () => renderPhoto(currentIndex + 1));
+      overlay.addEventListener('click', event => {
+        if (event.target === overlay) closeDarkroom();
+      });
+
+      cards.forEach((card, index) => {
+        card.addEventListener('click', event => {
+          if (document.body.classList.contains('has-darkroom-open') || photoList.dataset.darkroom === 'true') {
+            event.preventDefault();
+            openDarkroom(index);
+          }
+        });
+      });
+
+      document.addEventListener('keydown', event => {
+        if (overlay.hidden) return;
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          closeDarkroom();
+        } else if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          renderPhoto(currentIndex - 1);
+        } else if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          renderPhoto(currentIndex + 1);
+        }
+      });
+    }
+  }
 })();
