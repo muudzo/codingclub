@@ -9,7 +9,11 @@ def update_caddy(content, public_root, writer=False):
         raise ValueError("Invalid public root")
     serving = "    file_server"
     if writer:
-        serving = """    @writer path /write /write/*
+        serving = """    @motocross path /play/motocross-gp/ws /play/motocross-gp/ws/*
+    handle @motocross {
+        reverse_proxy 127.0.0.1:3211
+    }
+    @writer path /write /write/*
     handle @writer {
         reverse_proxy 127.0.0.1:3210
     }

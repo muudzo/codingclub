@@ -1,0 +1,20 @@
+[Unit]
+Description=Motocross GP live multiplayer WebSocket relay
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+Environment=MOTOCROSS_RELAY_PORT=3211
+ExecStart=/usr/bin/node /opt/tatenda-writer/tools/motocross-relay/server.mjs
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target
