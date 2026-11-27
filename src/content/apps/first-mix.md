@@ -22,3 +22,7 @@ First Mix gives you two decks, a crossfader, and guided lessons so you can pract
 1. Tap **Open app** above—it runs straight in your browser with starter tracks already loaded.
 2. Press **Play** on Deck A, then pick a track on Deck B and slide the **crossfader** at the bottom to blend between them.
 3. Want step-by-step practice? Follow the built-in guided lessons, or load your own MP3, WAV, or M4A files from your device (they stay on your device and work offline).
+
+## Where it’s at
+
+First Mix is currently in testing—try it out and let me know how it feels on your device.
