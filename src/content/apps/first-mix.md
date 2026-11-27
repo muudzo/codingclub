@@ -1,8 +1,8 @@
 ---
 title: "First Mix"
-description: "Learn how to DJ right in your browser or on an iPad—no controller, account, or setup needed."
+description: "Learn how to DJ right in your browser on any device—no controller, account, or setup needed."
 published: true
-platform: "iPad & Web Browser"
+platform: "Web Browser (works on any device)"
 logo:
   image: ../../assets/apps/first-mix-logo.png
   alt: "First Mix app icon"
