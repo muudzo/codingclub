@@ -113,7 +113,9 @@ export function createPublisher({ root, build = runBuild, now = () => new Date()
           await rename(staging, assets); assetInstalled = true;
         }
       }
-      const fields = { title, description: text.replace(/\s+/g, ' ').slice(0, 240), published: true, date, plainText: text, photos: entries };
+      const normalised = text.replace(/\s+/g, ' ').trim();
+      const summary = normalised.length <= 180 ? normalised : `${normalised.slice(0, 179).replace(/\s+\S*$/, '')}…`;
+      const fields = { title, description: summary, published: true, date, plainText: text, photos: entries };
       const markdown = `---\n${Object.entries(fields).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join('\n')}\n---\n`;
       if (resume && await exists(post)) {
         if (await readFile(post, 'utf8') !== markdown) throw new PublishError('This post already exists with different content.', 409);

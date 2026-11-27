@@ -23,7 +23,7 @@ const { Content } = await render(entry);
         {entry.collection === 'apps' && entry.data.logo && <Image src={entry.data.logo.image} alt={entry.data.logo.alt} width={72} height={72} class="app-logo app-logo-lg" loading="eager" />}
         <h1>{entry.data.title}</h1>
       </div>
-      <p>{entry.data.description}</p>
+      {!(entry.collection === 'blog' && entry.data.plainText) && <p>{entry.data.description}</p>}
       <div class="entry-meta">
         {entry.collection === 'experiments' && <span class="experiment-stage">{experimentStages[entry.data.stage].label}</span>}
         {entry.data.date && <time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date)}</time>}
@@ -44,7 +44,7 @@ const { Content } = await render(entry);
       {entry.data.demoUrl && <a class="button" href={entry.data.demoUrl} rel="noopener noreferrer">Try the prototype</a>}
     </div>}
     <div class="prose">
-      {entry.collection === 'blog' && entry.data.plainText && entry.data.plainText.split(/\n\s*\n/).map(paragraph => <p class="post-paragraph">{paragraph}</p>)}
+      {entry.collection === 'blog' && entry.data.plainText && entry.data.plainText.split(/\n\s*\n/).map(paragraph => <p class="post-paragraph">{paragraph.split('\n').map((line, i) => <>{i > 0 && <br />}{line}</>)}</p>)}
       <Content />
     </div>
     {entry.collection === 'apps' && <p><a class="text-link" href={`mailto:tatendawalter62@gmail.com?subject=${encodeURIComponent(`Feedback on ${entry.data.title}`)}`}>Trying this out? Send feedback.</a></p>}
