@@ -16,3 +16,7 @@ downloads:
 Built for real farms where mobile signal is spotty or nonexistent. Farm managers and workers can log cattle, goats, sheep, and other animals right from their phone, record losses with photo proof, and export clean reports.
 
 Everything saves on your device first and syncs automatically as soon as you're back online.
+
+## Where it’s at
+
+MooMetrics is about to go into real-world testing at our local farm first—solve for one, extend to many.
