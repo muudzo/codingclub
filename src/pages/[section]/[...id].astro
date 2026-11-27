@@ -44,6 +44,7 @@ const { Content } = await render(entry);
       {entry.collection === 'blog' && entry.data.plainText && entry.data.plainText.split(/\n\s*\n/).map(paragraph => <p class="post-paragraph">{paragraph}</p>)}
       <Content />
     </div>
+    {entry.collection === 'apps' && <p><a class="text-link" href={`mailto:tatendawalter62@gmail.com?subject=${encodeURIComponent(`Feedback on ${entry.data.title}`)}`}>Trying this out? Send feedback.</a></p>}
     {entry.collection === 'blog' && entry.data.photos.length > 0 && <div class="post-photos">{entry.data.photos.map((photo, index) => <figure class="photo-figure"><Image src={photo.image} alt={photo.alt} width={Math.min(1600, photo.image.width)} widths={[480, 960, 1600, Math.min(1600, photo.image.width)].filter((width, i, widths) => width <= photo.image.width && widths.indexOf(width) === i).sort((a, b) => a - b)} sizes="(max-width: 1280px) 90vw, 1200px" format="webp" loading={index === 0 ? 'eager' : 'lazy'} /></figure>)}</div>}
   </article>
 </Base>
