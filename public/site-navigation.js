@@ -46,11 +46,13 @@
         const img = card.querySelector('img');
         const heading = card.querySelector('h2');
         if (!img) return null;
+        const slug = (card.getAttribute('href') || '').split('/').filter(Boolean).pop() || '';
         return {
           src: img.currentSrc || img.getAttribute('src') || '',
           srcset: img.getAttribute('srcset') || '',
           alt: img.getAttribute('alt') || '',
           title: heading ? heading.textContent.trim() : '',
+          slug,
         };
       })
       .filter(Boolean);
@@ -72,6 +74,7 @@
         const single = photos.length <= 1;
         prevBtn.disabled = single;
         nextBtn.disabled = single;
+        if (item.slug) history.replaceState(null, '', `#darkroom-${encodeURIComponent(item.slug)}`);
       }
 
       function openDarkroom(index = 0) {
@@ -86,7 +89,16 @@
         if (overlay.hidden) return;
         overlay.hidden = true;
         document.body.classList.remove('has-darkroom-open');
+        if (window.location.hash.startsWith('#darkroom-')) {
+          history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
         if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+      }
+
+      if (window.location.hash.startsWith('#darkroom-')) {
+        const targetSlug = decodeURIComponent(window.location.hash.slice('#darkroom-'.length));
+        const idx = photos.findIndex(item => item.slug === targetSlug);
+        if (idx !== -1) openDarkroom(idx);
       }
 
       openBtn.addEventListener('click', () => openDarkroom(0));

@@ -399,6 +399,96 @@
     setStatus('PDF downloaded.');
   });
 
+  const ALLOWED_COLORS = new Set(['#7d0c14', '#1f1c1c', '#4a5568', '#9c6b19']);
+  const ALLOWED_WIDTHS = new Set([2, 5, 9]);
+  const ALLOWED_TOOLS = new Set(['pen', 'line', 'rect', 'circle']);
+
+  function encodeShareState() {
+    const titleInput = formEl?.querySelector('input[name="title"]');
+    const authorInput = formEl?.querySelector('input[name="author"]');
+    const payload = {
+      t: titleInput instanceof HTMLInputElement ? titleInput.value.trim().slice(0, 60) : '',
+      a: authorInput instanceof HTMLInputElement ? authorInput.value.trim().slice(0, 40) : '',
+      s: strokes,
+    };
+    const bytes = new TextEncoder().encode(JSON.stringify(payload));
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 1) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  function decodeShareState(encoded) {
+    try {
+      const b64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
+      const parsed = JSON.parse(new TextDecoder().decode(bytes));
+      if (!parsed || !Array.isArray(parsed.s) || parsed.s.length === 0 || parsed.s.length > MAX_STROKES) return null;
+      const validStrokes = [];
+      for (const raw of parsed.s) {
+        if (!raw || !ALLOWED_TOOLS.has(raw.tool) || !ALLOWED_COLORS.has(raw.color) || !ALLOWED_WIDTHS.has(Number(raw.width))) return null;
+        if (raw.tool === 'pen') {
+          if (!Array.isArray(raw.points) || !raw.points.length || raw.points.length > MAX_POINTS) return null;
+          const pts = raw.points.map(p => (Array.isArray(p) && p.length === 2 && Number.isFinite(Number(p[0])) && Number.isFinite(Number(p[1])))
+            ? [Math.max(0, Math.min(WIDTH, round1(Number(p[0])))), Math.max(0, Math.min(HEIGHT, round1(Number(p[1]))))]
+            : null);
+          if (pts.some(p => !p)) return null;
+          validStrokes.push({ tool: 'pen', color: raw.color, width: Number(raw.width), points: pts });
+        } else {
+          if (!Array.isArray(raw.from) || raw.from.length !== 2 || !Array.isArray(raw.to) || raw.to.length !== 2) return null;
+          const fx = Number(raw.from[0]), fy = Number(raw.from[1]), tx = Number(raw.to[0]), ty = Number(raw.to[1]);
+          if (![fx, fy, tx, ty].every(Number.isFinite)) return null;
+          validStrokes.push({
+            tool: raw.tool,
+            color: raw.color,
+            width: Number(raw.width),
+            from: [Math.max(0, Math.min(WIDTH, round1(fx))), Math.max(0, Math.min(HEIGHT, round1(fy)))],
+            to: [Math.max(0, Math.min(WIDTH, round1(tx))), Math.max(0, Math.min(HEIGHT, round1(ty)))],
+          });
+        }
+      }
+      return {
+        title: typeof parsed.t === 'string' ? parsed.t.trim().slice(0, 60) : '',
+        author: typeof parsed.a === 'string' ? parsed.a.trim().slice(0, 40) : '',
+        strokes: validStrokes,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  document.getElementById('sketch-copy-link')?.addEventListener('click', async () => {
+    if (!strokes.length) return setStatus('Draw something first before copying a link.', true);
+    const encoded = encodeShareState();
+    if (encoded.length > 8000) {
+      return setStatus('This drawing is too detailed for a share link—download it as SVG or PDF instead.', true);
+    }
+    const url = `${window.location.origin}${window.location.pathname}#s=${encoded}`;
+    history.replaceState(null, '', `#s=${encoded}`);
+    try {
+      await navigator.clipboard.writeText(url);
+      setStatus('Share link copied! Anyone with this link can open your drawing.');
+    } catch {
+      setStatus('Share link added to your address bar—copy the URL to share.');
+    }
+  });
+
+  if (window.location.hash.startsWith('#s=')) {
+    const loaded = decodeShareState(window.location.hash.slice(3));
+    if (loaded) {
+      strokes = loaded.strokes;
+      const titleInput = formEl?.querySelector('input[name="title"]');
+      const authorInput = formEl?.querySelector('input[name="author"]');
+      if (titleInput instanceof HTMLInputElement && loaded.title) titleInput.value = loaded.title;
+      if (authorInput instanceof HTMLInputElement && loaded.author) authorInput.value = loaded.author;
+      redraw();
+      setStatus('Loaded shared sketch from link.');
+    } else {
+      setStatus('Could not load that shared sketch link.', true);
+    }
+  }
+
   formEl?.addEventListener('submit', async event => {
     event.preventDefault();
     if (submitting) return;
