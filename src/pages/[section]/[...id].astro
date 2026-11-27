@@ -33,7 +33,10 @@ const { Content } = await render(entry);
       </div>
     </header>
     {entry.collection === 'photography' && <figure class="photo-figure"><Image src={entry.data.image} alt={entry.data.alt} width={Math.min(1600, entry.data.image.width)} widths={[480, 960, 1600].filter(w => w <= entry.data.image.width)} sizes="(max-width: 1280px) 90vw, 1200px" format="webp" loading="eager" />{entry.data.caption && <figcaption>{entry.data.caption}</figcaption>}</figure>}
-    {entry.collection === 'apps' && <div class="download-links" aria-label="Downloads">{entry.data.downloads.map((download, index) => <a class:list={['button', index > 0 && 'button-secondary']} href={download.url} target={download.url.includes('/play/') ? '_blank' : undefined} rel="noopener noreferrer">{download.label}</a>)}</div>}
+    {entry.collection === 'apps' && <div class="download-links" aria-label="Downloads">{entry.data.downloads.map((download, index) => {
+      const targetUrl = download.url.startsWith('https://tatendanyemudzo.com/play/') ? href(download.url.slice('https://tatendanyemudzo.com/'.length)) : download.url;
+      return <a class:list={['button', index > 0 && 'button-secondary']} href={targetUrl} target={targetUrl.includes('/play/') ? '_blank' : undefined} rel="noopener noreferrer">{download.label}</a>;
+    })}</div>}
     {entry.collection === 'music' && <a class="button listen-link" href={entry.data.listenUrl} rel="noopener noreferrer">Listen to the song</a>}
     {entry.collection === 'experiments' && entry.data.visual && <figure class="photo-figure"><Image src={entry.data.visual.image} alt={entry.data.visual.alt} width={Math.min(1600, entry.data.visual.image.width)} widths={[480, 960, 1600, Math.min(1600, entry.data.visual.image.width)].filter((width, i, widths) => width <= entry.data.visual!.image.width && widths.indexOf(width) === i).sort((a, b) => a - b)} sizes="(max-width: 1280px) 90vw, 1200px" format="webp" loading="eager" /></figure>}
     {entry.collection === 'experiments' && (entry.data.repositoryUrl || entry.data.demoUrl) && <div class="download-links" aria-label="Project links">
