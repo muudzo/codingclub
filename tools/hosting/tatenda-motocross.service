@@ -5,10 +5,11 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=www-data
-Group=www-data
+User=tatenda-writer
+Group=tatenda-writer
+WorkingDirectory=/opt/tatenda-writer/current
 Environment=MOTOCROSS_RELAY_PORT=3211
-ExecStart=/usr/bin/node /opt/tatenda-writer/tools/motocross-relay/server.mjs
+ExecStart=/opt/tatenda-writer/runtime/bin/node /opt/tatenda-writer/current/tools/motocross-relay/server.mjs
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=yes
