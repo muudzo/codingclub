@@ -5,7 +5,9 @@ import { readFile, stat } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createAuth, equalSecret } from './auth.mjs';
-import { createGitPublisher, recoverPublicOutput } from './git-publish.mjs';
+import { createGitPublisher, createSketchPublisher, recoverPublicOutput } from './git-publish.mjs';
+import { createSketchStore } from './sketches.mjs';
+import { SKETCH_LIMITS } from '../../src/lib/sketches.mjs';
 import { withPublishingLock } from './lock.mjs';
 import { sshEnvironment } from './git.mjs';
 import { readBody, readPostForm } from '../composer/uploads.mjs';
@@ -15,11 +17,12 @@ const directory = dirname(fileURLToPath(import.meta.url));
 const sharedUI = resolve(directory, '../composer/ui');
 export const phoneLimits = { imageBytes: 10 * 1024 * 1024, bodyBytes: 82 * 1024 * 1024 };
 
-export async function startWriter({ root, stateRoot, passwordFile, publish, publicOrigin, port = 3210, insecureLocalhost = false }) {
+export async function startWriter({ root, stateRoot, passwordFile, publish, approveSketch, publicOrigin, port = 3210, insecureLocalhost = false }) {
   if (!insecureLocalhost && (!publicOrigin || new URL(publicOrigin).protocol !== 'https:')) throw new Error('The publishing origin must use HTTPS.');
   if (insecureLocalhost && publicOrigin && !/^http:\/\/127\.0\.0\.1(?::\d+)?\/?$/.test(publicOrigin)) throw new Error('Insecure test mode is restricted to loopback.');
   let origin = publicOrigin ? new URL(publicOrigin).origin : undefined;
   const auth = await createAuth({ passwordFile, stateRoot, secure: !insecureLocalhost });
+  const sketchStore = createSketchStore({ stateRoot });
   let reading = false;
   const server = createServer(async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
@@ -49,13 +52,39 @@ export async function startWriter({ root, stateRoot, passwordFile, publish, publ
         res.setHeader('Set-Cookie', cookie);
         return send(200, { signedIn: true });
       }
+      if (url.pathname === '/write/api/public/sketch' && req.method === 'POST') {
+        if (!req.headers['content-type']?.startsWith('application/json')) throw new PublishError('Send sketch data as JSON.');
+        let input;
+        try { input = JSON.parse((await readBody(req, SKETCH_LIMITS.maxBodyBytes)).toString()); }
+        catch (error) { if (error instanceof PublishError) throw error; throw new PublishError('The sketch request could not be read.'); }
+        const forwarded = req.headers['cf-connecting-ip'];
+        const client = typeof forwarded === 'string' && isIP(forwarded) ? forwarded : req.socket.remoteAddress;
+        await sketchStore.submit(input, client);
+        return send(201, { ok: true, message: 'Sketch received! It will appear on the wall once approved.' });
+      }
       const session = await auth.session(req.headers.cookie);
       if (url.pathname.startsWith('/write/api/')) {
         if (!session) throw new PublishError('Sign in to publish. Your draft can be retried after signing in.', 401);
         if (url.pathname === '/write/api/session' && req.method === 'GET') return send(200, { csrf: session.csrf, imageBytes: phoneLimits.imageBytes });
+        if (url.pathname === '/write/api/sketches' && req.method === 'GET') return send(200, { sketches: await sketchStore.listPending() });
         if (req.method !== 'POST') return send(405, { error: 'Method not allowed.' });
         if (!equalSecret(req.headers['x-writer-csrf'], session.csrf)) throw new PublishError('Refresh this editor before publishing.', 403);
         if (url.pathname === '/write/api/logout') { res.setHeader('Set-Cookie', await auth.logout(req.headers.cookie)); return send(200, { signedIn: false }); }
+        if (url.pathname === '/write/api/sketches/reject') {
+          let input;
+          try { input = JSON.parse((await readBody(req, 1024)).toString()); } catch { throw new PublishError('Invalid sketch request.'); }
+          await sketchStore.removePending(input?.id);
+          return send(200, { ok: true });
+        }
+        if (url.pathname === '/write/api/sketches/approve') {
+          if (typeof approveSketch !== 'function') throw new PublishError('Sketch publishing is not configured.', 501);
+          let input;
+          try { input = JSON.parse((await readBody(req, 1024)).toString()); } catch { throw new PublishError('Invalid sketch request.'); }
+          const pending = await sketchStore.takePending(input?.id);
+          const result = await approveSketch(pending);
+          await sketchStore.removePending(pending.id);
+          return send(200, { ok: true, ...result });
+        }
         if (url.pathname !== '/write/api/publish') return send(404, { error: 'Not found.' });
         if (reading) throw new PublishError('A post is being published. Please wait.', 409);
         reading = true;
@@ -78,7 +107,7 @@ export async function startWriter({ root, stateRoot, passwordFile, publish, publ
         bytes = Buffer.from((await readFile(join(sharedUI, 'composer.css'), 'utf8')).replaceAll('/compose/', '/write/')); type = 'text/css';
       } else if (url.pathname === '/write/composer.js') { bytes = await readFile(join(sharedUI, 'composer.js')); type = 'text/javascript'; }
       else if (url.pathname === '/write/login.js') { bytes = await readFile(join(directory, 'ui/login.js')); type = 'text/javascript'; }
-      else if (['/write/drafts.js', '/write/app.webmanifest', '/write/icon-192.png', '/write/icon-512.png'].includes(url.pathname)) {
+      else if (['/write/drafts.js', '/write/sketches.js', '/write/app.webmanifest', '/write/icon-192.png', '/write/icon-512.png'].includes(url.pathname)) {
         bytes = await readFile(join(directory, 'ui', url.pathname.split('/').pop()));
         type = url.pathname.endsWith('.png') ? 'image/png' : url.pathname.endsWith('.webmanifest') ? 'application/manifest+json' : 'text/javascript';
       }
@@ -110,6 +139,7 @@ if (isEntryPoint(import.meta.url)) {
     await withPublishingLock(join(config.stateRoot, 'publish.lock'), () => recoverPublicOutput(config.publicRoot));
   }
   const publish = createGitPublisher({ ...config, dependenciesRoot: root, siteUrl: config.publicOrigin, gitEnv });
-  await startWriter({ ...config, root, publish });
+  const approveSketch = createSketchPublisher({ ...config, dependenciesRoot: root, siteUrl: config.publicOrigin, gitEnv });
+  await startWriter({ ...config, root, publish, approveSketch });
   console.log('Private publishing service is listening on loopback.');
 }
