@@ -2,6 +2,7 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { experimentStageIds } from './lib/experiments';
+import { SKETCH_COLORS, SKETCH_WIDTHS } from './lib/sketches.mjs';
 
 const httpsUrl = z.url({ protocol: /^https$/ });
 const common = {
@@ -59,4 +60,29 @@ const experiments = defineCollection({
   }),
 });
 
-export const collections = { apps, music, photography, blog, experiments };
+const sketches = defineCollection({
+  loader: load('sketches'),
+  schema: z.object({
+    title: z.string().trim().min(1).max(60),
+    author: z.string().trim().max(40).default(''),
+    date: z.coerce.date(),
+    published: z.boolean().default(false),
+    strokes: z.array(z.union([
+      z.object({
+        tool: z.literal('pen'),
+        color: z.enum(SKETCH_COLORS as [string, ...string[]]),
+        width: z.number().refine(v => SKETCH_WIDTHS.includes(v)),
+        points: z.array(z.tuple([z.number(), z.number()])).min(1).max(500),
+      }),
+      z.object({
+        tool: z.enum(['line', 'rect', 'circle']),
+        color: z.enum(SKETCH_COLORS as [string, ...string[]]),
+        width: z.number().refine(v => SKETCH_WIDTHS.includes(v)),
+        from: z.tuple([z.number(), z.number()]),
+        to: z.tuple([z.number(), z.number()]),
+      }),
+    ])).min(1).max(300),
+  }),
+});
+
+export const collections = { apps, music, photography, blog, experiments, sketches };

@@ -48,6 +48,7 @@ const localPath = Astro.url.pathname.slice(base.length);
         <nav aria-label="Footer navigation">
           <a href={href()}>Home</a>
           {sections.map(section => <a href={href(`${section.id}/`)}>{section.title}</a>)}
+          <a class="footer-easter-egg" href={href('sketch/')}>Leave a sketch</a>
         </nav>
       </div>
       <div class="frame"><p class="footer-name">tatenda nyemudzo.dev</p></div>
