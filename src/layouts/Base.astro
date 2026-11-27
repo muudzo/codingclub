@@ -44,7 +44,10 @@ const localPath = Astro.url.pathname.slice(base.length);
     </aside>
     <footer class="site-footer">
       <div class="frame footer-top">
-        <p>A personal collection.<br />Always room for more.</p>
+        <div>
+          <p>A personal collection.<br />Always room for more.</p>
+          <p class="footer-contact"><a href="mailto:tatendawalter62@gmail.com">tatendawalter62@gmail.com</a> · <a href="https://github.com/muudzo" rel="noopener noreferrer">GitHub</a></p>
+        </div>
         <nav aria-label="Footer navigation">
           <a href={href()}>Home</a>
           {sections.map(section => <a href={href(`${section.id}/`)}>{section.title}</a>)}

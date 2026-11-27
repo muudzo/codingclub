@@ -302,6 +302,18 @@ main:focus {
   line-height: 1.3;
 }
 
+.footer-top .footer-contact {
+  margin-top: 16px;
+  font-size: var(--body);
+}
+
+.footer-contact a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: none;
+}
+
 .footer-top nav {
   display: flex;
   align-content: start;
