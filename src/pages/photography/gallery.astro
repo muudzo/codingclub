@@ -1,0 +1,289 @@
+---
+import { getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import { href } from '../../site';
+import { publishedEntries } from '../../lib/content';
+
+const entries = await publishedEntries('photography');
+const frames = await Promise.all(
+  entries.map(async entry => {
+    const img = await getImage({
+      src: entry.data.image,
+      width: Math.min(960, entry.data.image.width),
+      format: 'webp',
+    });
+    return {
+      id: entry.id,
+      title: entry.data.title,
+      alt: entry.data.alt,
+      src: img.src,
+      aspect: entry.data.image.width / entry.data.image.height,
+    };
+  }),
+);
+---
+<Base title="Kariba 3D Gallery" description="Explore the Kariba photography collection in an interactive 3D space." noindex>
+  <div class="frame gallery3d-page">
+    <header class="gallery3d-header">
+      <div class="gallery3d-title-wrap">
+        <a class="back-link" href={href('photography/')}>Back to photography</a>
+        <h1>Kariba 3D Gallery</h1>
+      </div>
+      <p class="gallery3d-help">Drag or scroll to look around, tap any photo to focus, or use Previous / Next and arrow keys.</p>
+    </header>
+
+    {frames.length ? (
+      <section class="gallery3d-stage" id="gallery3d-stage" data-frames={JSON.stringify(frames)} aria-label="3D photography gallery">
+        <canvas id="gallery3d-canvas" aria-label="Interactive 3D Kariba photography room"></canvas>
+        <p class="gallery3d-fallback" id="gallery3d-fallback" hidden>
+          3D view is unavailable in this browser. <a href={href('photography/')}>View the photography grid instead</a>.
+        </p>
+        <div class="gallery3d-hud">
+          <div class="gallery3d-caption">
+            <h2 id="gallery3d-caption-title">{frames[0].title}</h2>
+            <span id="gallery3d-counter">1 / {frames.length}</span>
+          </div>
+          <div class="gallery3d-controls">
+            <button type="button" class="gallery3d-btn" id="gallery3d-prev" aria-label="Previous photograph">Previous</button>
+            <button type="button" class="gallery3d-btn" id="gallery3d-next" aria-label="Next photograph">Next</button>
+            <button type="button" class="gallery3d-btn" id="gallery3d-reset" aria-label="Reset camera">Reset</button>
+          </div>
+        </div>
+      </section>
+    ) : (
+      <section class="empty-state">
+        <h2>No photographs shared yet.</h2>
+        <p>Photographs will appear here in 3D once published.</p>
+        <a class="text-link" href={href('photography/')}>Back to photography</a>
+      </section>
+    )}
+  </div>
+  <script>
+    import * as THREE from 'three';
+
+    const stage = document.getElementById('gallery3d-stage');
+    const canvas = document.getElementById('gallery3d-canvas') as HTMLCanvasElement | null;
+    const fallback = document.getElementById('gallery3d-fallback');
+    const titleEl = document.getElementById('gallery3d-caption-title');
+    const counterEl = document.getElementById('gallery3d-counter');
+    const prevBtn = document.getElementById('gallery3d-prev');
+    const nextBtn = document.getElementById('gallery3d-next');
+    const resetBtn = document.getElementById('gallery3d-reset');
+
+    if (stage && canvas) {
+      let frames: Array<{ id: string; title: string; alt: string; src: string; aspect: number }> = [];
+      try {
+        frames = JSON.parse(stage.dataset.frames || '[]');
+      } catch {
+        frames = [];
+      }
+
+      if (frames.length) {
+        let renderer: THREE.WebGLRenderer | null = null;
+        try {
+          renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+        } catch {
+          if (fallback) fallback.hidden = false;
+          canvas.hidden = true;
+        }
+
+        if (renderer) {
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          renderer.toneMappingExposure = 1.08;
+
+          const scene = new THREE.Scene();
+          scene.background = new THREE.Color('#140d0e');
+          scene.fog = new THREE.FogExp2('#140d0e', 0.032);
+
+          const camera = new THREE.PerspectiveCamera(52, 16 / 10, 0.1, 120);
+          const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+          const ambient = new THREE.AmbientLight('#f5e9e6', 0.75);
+          scene.add(ambient);
+
+          const keyLight = new THREE.PointLight('#ffd8c4', 24, 45, 1.4);
+          keyLight.position.set(0, 5.5, 4);
+          scene.add(keyLight);
+
+          const rimLight = new THREE.PointLight('#8b121c', 18, 40, 1.5);
+          rimLight.position.set(-8, 2.5, -10);
+          scene.add(rimLight);
+
+          const floorGeo = new THREE.CircleGeometry(36, 64);
+          const floorMat = new THREE.MeshStandardMaterial({ color: '#1b1113', roughness: 0.35, metalness: 0.45 });
+          const floor = new THREE.Mesh(floorGeo, floorMat);
+          floor.rotation.x = -Math.PI / 2;
+          floor.position.y = -2.2;
+          scene.add(floor);
+
+          const ringGeo = new THREE.RingGeometry(7.2, 7.26, 96);
+          const ringMat = new THREE.MeshBasicMaterial({ color: '#7d0c14', side: THREE.DoubleSide, transparent: true, opacity: 0.45 });
+          const ring = new THREE.Mesh(ringGeo, ringMat);
+          ring.rotation.x = -Math.PI / 2;
+          ring.position.y = -2.18;
+          scene.add(ring);
+
+          const loader = new THREE.TextureLoader();
+          const meshes: THREE.Mesh[] = [];
+          const radius = Math.max(8.5, frames.length * 0.56);
+
+          frames.forEach((frame, index) => {
+            const angle = (index / frames.length) * Math.PI * 2;
+            const height = 2.6;
+            const width = Math.min(4.2, Math.max(1.8, height * (frame.aspect || 1.33)));
+            const geo = new THREE.PlaneGeometry(width, height);
+            const mat = new THREE.MeshStandardMaterial({ color: '#2a2223', roughness: 0.6, metalness: 0.05 });
+
+            loader.load(frame.src, tex => {
+              tex.colorSpace = THREE.SRGBColorSpace;
+              mat.map = tex;
+              mat.color.set('#ffffff');
+              mat.needsUpdate = true;
+            });
+
+            const mesh = new THREE.Mesh(geo, mat);
+            const x = Math.sin(angle) * radius;
+            const z = Math.cos(angle) * radius;
+            const yOffset = Math.sin(index * 0.85) * 0.45;
+            mesh.position.set(x, yOffset, z);
+            mesh.lookAt(0, yOffset, 0);
+            mesh.userData = { index, angle, baseY: yOffset };
+
+            const backingGeo = new THREE.PlaneGeometry(width + 0.14, height + 0.14);
+            const backingMat = new THREE.MeshBasicMaterial({ color: '#2b1316' });
+            const backing = new THREE.Mesh(backingGeo, backingMat);
+            backing.position.z = -0.02;
+            mesh.add(backing);
+
+            scene.add(mesh);
+            meshes.push(mesh);
+          });
+
+          let activeIndex = 0;
+          let targetYaw = 0;
+          let currentYaw = 0;
+          let targetPitch = 0.04;
+          let currentPitch = 0.04;
+          let targetDistance = Math.max(4.4, radius - 4.4);
+          let currentDistance = targetDistance;
+          let dragging = false;
+          let dragMoved = false;
+          let lastX = 0;
+          let lastY = 0;
+
+          function focusFrame(index: number, updateHash = true) {
+            activeIndex = (index + frames.length) % frames.length;
+            const frame = frames[activeIndex];
+            const angle = meshes[activeIndex].userData.angle;
+            // Shortest angular interpolation around the circle.
+            const delta = Math.atan2(Math.sin(angle - targetYaw), Math.cos(angle - targetYaw));
+            targetYaw += delta;
+            targetPitch = 0.03;
+            targetDistance = radius - 4.6;
+            if (titleEl) titleEl.textContent = frame.title;
+            if (counterEl) counterEl.textContent = `${activeIndex + 1} / ${frames.length}`;
+            if (updateHash) history.replaceState(null, '', `#frame-${encodeURIComponent(frame.id)}`);
+          }
+
+          if (window.location.hash.startsWith('#frame-')) {
+            const targetId = decodeURIComponent(window.location.hash.slice('#frame-'.length));
+            const idx = frames.findIndex(f => f.id === targetId);
+            if (idx !== -1) focusFrame(idx, false);
+          } else {
+            focusFrame(0, false);
+          }
+          currentYaw = targetYaw;
+
+          const raycaster = new THREE.Raycaster();
+          const pointer = new THREE.Vector2();
+
+          canvas.addEventListener('pointerdown', event => {
+            dragging = true;
+            dragMoved = false;
+            lastX = event.clientX;
+            lastY = event.clientY;
+            canvas.setPointerCapture(event.pointerId);
+          });
+
+          canvas.addEventListener('pointermove', event => {
+            if (!dragging) return;
+            const dx = event.clientX - lastX;
+            const dy = event.clientY - lastY;
+            if (Math.hypot(dx, dy) > 4) dragMoved = true;
+            targetYaw -= dx * 0.0055;
+            targetPitch = Math.max(-0.35, Math.min(0.45, targetPitch + dy * 0.0035));
+            lastX = event.clientX;
+            lastY = event.clientY;
+          });
+
+          canvas.addEventListener('pointerup', event => {
+            if (!dragging) return;
+            dragging = false;
+            if (!dragMoved) {
+              const rect = canvas.getBoundingClientRect();
+              pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+              pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+              raycaster.setFromCamera(pointer, camera);
+              const hits = raycaster.intersectObjects(meshes, false);
+              if (hits.length) focusFrame(hits[0].object.userData.index);
+            }
+          });
+
+          canvas.addEventListener('wheel', event => {
+            event.preventDefault();
+            targetDistance = Math.max(2.5, Math.min(radius + 2.5, targetDistance + event.deltaY * 0.004));
+          }, { passive: false });
+
+          prevBtn?.addEventListener('click', () => focusFrame(activeIndex - 1));
+          nextBtn?.addEventListener('click', () => focusFrame(activeIndex + 1));
+          resetBtn?.addEventListener('click', () => focusFrame(0));
+
+          document.addEventListener('keydown', event => {
+            if (event.key === 'ArrowLeft') { event.preventDefault(); focusFrame(activeIndex - 1); }
+            else if (event.key === 'ArrowRight') { event.preventDefault(); focusFrame(activeIndex + 1); }
+          });
+
+          function resize() {
+            const width = stage!.clientWidth || 800;
+            const height = Math.max(380, Math.min(640, Math.round(width * 0.58)));
+            renderer!.setSize(width, height, false);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+          }
+
+          resize();
+          window.addEventListener('resize', resize);
+
+          const clock = new THREE.Clock();
+          function animate() {
+            const t = clock.getElapsedTime();
+            const ease = reducedMotion ? 1 : 0.08;
+            currentYaw += (targetYaw - currentYaw) * ease;
+            currentPitch += (targetPitch - currentPitch) * ease;
+            currentDistance += (targetDistance - currentDistance) * ease;
+
+            camera.position.set(
+              Math.sin(currentYaw) * currentDistance,
+              currentPitch * 3.5 + 0.15,
+              Math.cos(currentYaw) * currentDistance,
+            );
+            const lookDist = radius;
+            camera.lookAt(Math.sin(currentYaw) * lookDist, meshes[activeIndex]?.position.y ?? 0, Math.cos(currentYaw) * lookDist);
+
+            if (!reducedMotion) {
+              for (const m of meshes) {
+                m.position.y = m.userData.baseY + Math.sin(t * 0.9 + m.userData.index) * 0.08;
+              }
+            }
+
+            renderer!.render(scene, camera);
+            requestAnimationFrame(animate);
+          }
+
+          animate();
+        }
+      }
+    }
+  </script>
+</Base>

@@ -16,6 +16,7 @@ const entries = await publishedEntries(section.id);
       {section.id === 'photography' && entries.length > 0 && (
         <div class="darkroom-toolbar">
           <button type="button" class="button button-secondary darkroom-open">Darkroom view</button>
+          <a class="button" href={href('photography/gallery/')}>3D Gallery</a>
         </div>
       )}
     </header>
