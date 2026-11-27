@@ -25,8 +25,10 @@ const { Content } = await render(entry);
       </div>
       {!(entry.collection === 'blog' && entry.data.plainText) && <p>{entry.data.description}</p>}
       <div class="entry-meta">
+        {entry.collection === 'blog' && <span class="blog-author">Tatenda Nyemudzo</span>}
         {entry.collection === 'experiments' && <span class="experiment-stage">{experimentStages[entry.data.stage].label}</span>}
         {entry.data.date && <time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date)}</time>}
+        {entry.collection === 'blog' && <span>{Math.max(1, Math.round(((entry.data.plainText || entry.body || entry.data.description || '').trim().split(/\s+/).filter(Boolean).length) / 200))} min read</span>}
         {entry.collection === 'music' && <span>{entry.data.artist}</span>}
         {entry.collection === 'apps' && entry.data.version && <span>Version {entry.data.version}</span>}
         {entry.collection === 'apps' && entry.data.platform && <span>{entry.data.platform}</span>}

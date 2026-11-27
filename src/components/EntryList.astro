@@ -5,22 +5,62 @@ import type { Entry } from '../lib/content';
 import { experimentStages } from '../lib/experiments';
 interface Props { entries: Entry[]; section: SectionId; }
 const { entries, section } = Astro.props;
+
+function readTime(entry: Entry) {
+  if (entry.collection !== 'blog') return '';
+  const source = entry.data.plainText || entry.body || entry.data.description || '';
+  const words = source.trim().split(/\s+/).filter(Boolean).length;
+  const mins = Math.max(1, Math.round(words / 200));
+  return `${mins} min read`;
+}
 ---
-<ul class:list={['entry-list', section === 'photography' && 'photo-list']}>
+<ul class:list={['entry-list', section === 'photography' && 'photo-list', section === 'blog' && 'blog-feed']}>
   {entries.map(entry => (
     <li>
-      <a class="entry-link" href={entryHref(section, entry.id)}>
+      <a class:list={['entry-link', section === 'blog' && 'blog-card']} href={entryHref(section, entry.id)}>
         {entry.collection === 'photography' && <Image src={entry.data.image} alt={entry.data.alt} width={Math.min(960, entry.data.image.width)} widths={[320, 640, 960].filter(w => w <= entry.data.image.width)} sizes="(max-width: 700px) 90vw, 45vw" format="webp" loading="lazy" />}
-        <div class="entry-title-row">
-          <div class="entry-title-group">
-            {entry.collection === 'apps' && entry.data.logo && <Image src={entry.data.logo.image} alt={entry.data.logo.alt} width={56} height={56} class="app-logo" loading="eager" />}
-            <h2>{entry.data.title}</h2>
-          </div>
-          {entry.data.date && <time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date)}</time>}
-        </div>
-        {entry.collection === 'music' && <p class="artist">{entry.data.artist}</p>}
-        {entry.collection === 'experiments' && <p class="experiment-stage">{experimentStages[entry.data.stage].label}</p>}
-        <p>{entry.data.description}</p>
+        {entry.collection === 'blog' ? (
+          <>
+            <div class="blog-card-byline">
+              <span class="blog-author">Tatenda Nyemudzo</span>
+              <span aria-hidden="true">·</span>
+              <time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date)}</time>
+              <span aria-hidden="true">·</span>
+              <span>{readTime(entry)}</span>
+            </div>
+            <h2 class="blog-card-title">{entry.data.title}</h2>
+            <p class="blog-card-excerpt">{entry.data.description}</p>
+            {entry.data.photos.length > 0 && (
+              <div class:list={['blog-card-media', entry.data.photos.length > 1 && 'is-multi']}>
+                {entry.data.photos.slice(0, 2).map((photo, index) => (
+                  <Image
+                    src={photo.image}
+                    alt={photo.alt}
+                    width={Math.min(960, photo.image.width)}
+                    widths={[480, 960].filter(w => w <= photo.image.width)}
+                    sizes="(max-width: 700px) 90vw, 680px"
+                    format="webp"
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                  />
+                ))}
+              </div>
+            )}
+            <span class="blog-card-more">Read post →</span>
+          </>
+        ) : (
+          <>
+            <div class="entry-title-row">
+              <div class="entry-title-group">
+                {entry.collection === 'apps' && entry.data.logo && <Image src={entry.data.logo.image} alt={entry.data.logo.alt} width={56} height={56} class="app-logo" loading="eager" />}
+                <h2>{entry.data.title}</h2>
+              </div>
+              {entry.data.date && <time datetime={entry.data.date.toISOString()}>{formatDate(entry.data.date)}</time>}
+            </div>
+            {entry.collection === 'music' && <p class="artist">{entry.data.artist}</p>}
+            {entry.collection === 'experiments' && <p class="experiment-stage">{experimentStages[entry.data.stage].label}</p>}
+            <p>{entry.data.description}</p>
+          </>
+        )}
       </a>
     </li>
   ))}
