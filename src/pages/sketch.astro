@@ -22,6 +22,12 @@ const sketches = (await getCollection('sketches'))
           <button type="button" class="sketch-btn" data-tool="line" aria-pressed="false">Line</button>
           <button type="button" class="sketch-btn" data-tool="rect" aria-pressed="false">Box</button>
           <button type="button" class="sketch-btn" data-tool="circle" aria-pressed="false">Circle</button>
+          <button type="button" class="sketch-btn" data-tool="move" aria-pressed="false">Move all</button>
+        </div>
+        <div class="sketch-tool-group" aria-label="Symmetry mode">
+          <button type="button" class="sketch-btn" data-mirror="none" aria-pressed="true">Off</button>
+          <button type="button" class="sketch-btn" data-mirror="horizontal" aria-pressed="false">Mirror</button>
+          <button type="button" class="sketch-btn" data-mirror="kaleidoscope" aria-pressed="false">Kaleidoscope</button>
         </div>
         <div class="sketch-tool-group" aria-label="Ink colours">
           <button type="button" class="sketch-swatch swatch-oxblood" data-color="#7d0c14" aria-label="Oxblood ink" aria-pressed="true"></button>
