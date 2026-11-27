@@ -257,6 +257,10 @@ main:focus {
   text-decoration: none;
 }
 
+.collection-index li+li {
+  border-top: 1px solid rgba(125,12,20,.14);
+}
+
 .collection-index h3 {
   font-size: var(--head);
   letter-spacing: -.035em;
@@ -389,6 +393,10 @@ main:focus {
   max-width: 1000px;
 }
 
+.entry-list:not(.photo-list)>li+li {
+  border-top: 1px solid rgba(125,12,20,.14);
+}
+
 .entry-link {
   display: block;
   padding: 24px 0;
@@ -451,8 +459,17 @@ main:focus {
 }
 
 .experiment-stage {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 3px 10px;
+  border: 1px solid rgba(125,12,20,.35);
+  border-radius: 999px;
   color: var(--ink);
   font-size: var(--small);
+}
+
+.entry-meta .experiment-stage {
+  margin-top: 0;
 }
 
 .experiment-guide {
