@@ -7,6 +7,8 @@ logo:
   image: ../../assets/apps/first-mix-logo.png
   alt: "First Mix app icon"
 downloads:
+  - label: "Open app"
+    url: "https://tatendanyemudzo.com/play/first-mix/"
   - label: "View on GitHub"
     url: "https://github.com/muudzo/first-mix"
 ---

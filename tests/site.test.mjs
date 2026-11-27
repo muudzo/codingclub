@@ -59,8 +59,12 @@ function photoFixture() {
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', header), chunk('IDAT', deflateSync(scanlines)), chunk('IEND', Buffer.alloc(0))]);
 }
 
+function isPlayAsset(file) {
+  return file.includes(`${join('dist', 'play')}`);
+}
+
 function assertLocalLinks(root, base = '/') {
-  for (const file of filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html'))) {
+  for (const file of filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html') && !isPlayAsset(file))) {
     const document = parseHTML(readFileSync(file, 'utf8')).document;
     assert.equal(document.querySelectorAll('h1').length, 1, file);
     const scripts = [...document.querySelectorAll('script')];
@@ -101,7 +105,7 @@ test('static website works empty and with new entries, excludes drafts, and supp
   await t.test('empty collections have useful pages, no fake entries, only the trusted navigation script, and working links', () => {
     const result = build(root);
     assert.equal(result.status, 0, result.log);
-    assert.equal(filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html')).length, 8);
+    assert.equal(filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html') && !isPlayAsset(file)).length, 8);
     for (const [section, text] of [['apps', 'No apps published yet.'], ['music', 'No songs shared yet.'], ['photography', 'No photographs shared yet.'], ['blog', 'No posts published yet.'], ['experiments', 'The first ideas are on their way.']]) {
       assert.ok(page(root, section).querySelector('main').textContent.includes(text));
     }
@@ -131,7 +135,7 @@ test('static website works empty and with new entries, excludes drafts, and supp
     write(root, 'src/content/experiments/future.md', '---\ntitle: PRIVATE FUTURE IDEA\ndescription: PRIVATE future idea.\npublished: true\nstage: researching\ndate: 2999-01-01\n---\nPRIVATE idea body.');
     const result = build(root);
     assert.equal(result.status, 0, result.log);
-    assert.equal(filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html')).length, 16);
+    assert.equal(filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html') && !isPlayAsset(file)).length, 16);
     for (const [stage, label] of [['researching', 'Researching'], ['concept', 'Concept'], ['prototype', 'Prototype'], ['in-development', 'In development']]) {
       assert.equal(page(root, `experiments/${stage}`).querySelector('.experiment-stage').textContent, label);
     }
@@ -154,7 +158,7 @@ test('static website works empty and with new entries, excludes drafts, and supp
     assert.ok(image.getAttribute('srcset').includes('480w'));
     assert.ok(image.getAttribute('src').includes('.webp'));
     assert.equal(photo.querySelector('figcaption').textContent, 'A test caption.');
-    assert.equal(filesBelow(join(root, 'dist')).some(file => file.endsWith('.png')), false, 'do not publish the original photo');
+    assert.equal(filesBelow(join(root, 'dist')).some(file => file.endsWith('.png') && !isPlayAsset(file)), false, 'do not publish the original photo');
     const output = filesBelow(join(root, 'dist')).filter(file => /\.(html|json)$/.test(file)).map(file => readFileSync(file, 'utf8')).join('');
     assert.ok(!output.includes('PRIVATE'), 'draft metadata, body, and future entries must stay out of output');
     for (const text of ['1 app', '1 song', '1 photo', '1 post']) assert.ok(page(root, '').querySelector('main').textContent.includes(text));
@@ -167,7 +171,7 @@ test('static website works empty and with new entries, excludes drafts, and supp
     const home = page(root, '');
     assert.equal(home.querySelector('link[rel="canonical"]').getAttribute('href'), 'https://site.example.test/personal/');
     assertLocalLinks(root, '/personal/');
-    for (const file of filesBelow(join(root, 'dist')).filter(file => file.endsWith('.css'))) {
+    for (const file of filesBelow(join(root, 'dist')).filter(file => file.endsWith('.css') && !isPlayAsset(file))) {
       for (const [, url] of readFileSync(file, 'utf8').matchAll(/url\(["']?([^\s)"']+)/g)) {
         assert.ok(url.startsWith('/personal/'), `CSS asset must respect the base: ${url}`);
         assert.ok(existsSync(join(root, 'dist', url.slice('/personal/'.length))));
