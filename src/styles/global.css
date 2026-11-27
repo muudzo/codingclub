@@ -214,6 +214,17 @@ main:focus {
   transform: translateY(1px);
 }
 
+.button-secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+}
+
+.button-secondary:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+
 .collection {
   padding-block: 60px 80px;
   background: var(--surface);
@@ -714,5 +725,169 @@ main:focus {
   :root {
     --display: 3rem;
   }
+}
+
+.footer-easter-egg {
+  opacity: .72;
+}
+
+.footer-easter-egg:hover {
+  opacity: 1;
+}
+
+.sketch-studio {
+  max-width: 920px;
+}
+
+.sketch-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sketch-tool-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.sketch-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--muted);
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--small);
+  cursor: pointer;
+}
+
+.sketch-btn[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+.sketch-swatch {
+  width: 44px;
+  height: 44px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sketch-swatch[aria-pressed="true"] {
+  border-color: var(--ink);
+  outline: 2px solid var(--bg);
+  outline-offset: -4px;
+}
+
+.swatch-oxblood { background: #7d0c14; }
+.swatch-charcoal { background: #1f1c1c; }
+.swatch-slate { background: #4a5568; }
+.swatch-ochre { background: #9c6b19; }
+
+.sketch-canvas-wrap {
+  background: #f4f4f4;
+  border: 1px solid var(--muted);
+  max-width: 800px;
+}
+
+#sketch-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 800 / 500;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.sketch-actions {
+  margin-top: 20px;
+  display: grid;
+  gap: 20px;
+  max-width: 800px;
+}
+
+.sketch-export-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sketch-submit-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+}
+
+.sketch-field {
+  display: grid;
+  gap: 6px;
+  flex: 1 1 200px;
+  font-size: var(--small);
+}
+
+.sketch-field input {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--muted);
+  background: #f4f4f4;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.sketch-status {
+  min-height: 1.4em;
+  font-size: var(--small);
+}
+
+.sketch-status.is-error {
+  font-weight: 500;
+}
+
+.sketch-wall {
+  margin-top: 64px;
+}
+
+.sketch-wall h2 {
+  font-size: var(--head);
+  margin-bottom: 24px;
+}
+
+.sketch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 28px;
+}
+
+.sketch-card {
+  background: var(--surface);
+  padding: 14px;
+}
+
+.sketch-card svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.sketch-card-meta {
+  margin-top: 12px;
+}
+
+.sketch-card-meta h3 {
+  font-size: var(--body);
+}
+
+.sketch-card-meta p {
+  font-size: var(--small);
+  color: var(--muted);
+  margin-top: 4px;
 }
 

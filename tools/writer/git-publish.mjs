@@ -103,3 +103,72 @@ export function createGitPublisher({ repository, stateRoot, publicRoot, dependen
     } finally { busy = false; }
   };
 }
+
+export function createSketchPublisher({ repository, stateRoot, publicRoot, dependenciesRoot, siteUrl, gitEnv = {}, build = runBuild }) {
+  for (const path of [repository, stateRoot, publicRoot, dependenciesRoot]) if (!isAbsolute(path)) throw new Error('Writer filesystem paths must be absolute.');
+  let busy = false;
+  return async sketch => {
+    if (busy) throw new PublishError('A publish is already in progress. Please wait.', 409);
+    busy = true;
+    try {
+      return await withPublishingLock(join(stateRoot, 'publish.lock'), async assertHeld => {
+        await recoverPublicOutput(publicRoot);
+        await runGit(repository, ['fetch', 'origin', 'main'], gitEnv);
+        const tree = join(stateRoot, 'worktrees', `sketch-${sketch.id}`);
+        await mkdir(join(stateRoot, 'worktrees'), { recursive: true, mode: 0o700 });
+        await runGit(repository, ['worktree', 'remove', '--force', tree], gitEnv).catch(() => {});
+        await rm(tree, { recursive: true, force: true });
+        const staging = join(publicRoot, '..', `build-sketch-${sketch.id}`);
+        const backup = join(publicRoot, '..', `previous-sketch-${sketch.id}`);
+        await rm(staging, { recursive: true, force: true });
+        await runGit(repository, ['worktree', 'add', '--detach', tree, 'origin/main'], gitEnv);
+        try {
+          const expected = await readFile(join(dependenciesRoot, 'package-lock.json'));
+          if (!expected.equals(await readFile(join(tree, 'package-lock.json')))) throw new PublishError('Deploy the latest site dependencies before approving sketches.', 409);
+          await symlink(join(dependenciesRoot, 'node_modules'), join(tree, 'node_modules'), 'dir');
+          const datePrefix = String(sketch.createdAt).slice(0, 10);
+          const slug = sketch.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'sketch';
+          const relFile = join('src/content/sketches', `${datePrefix}-${slug}-${sketch.id}.md`);
+          const targetFile = join(tree, relFile);
+          await mkdir(join(tree, 'src/content/sketches'), { recursive: true });
+          const frontmatter = [
+            '---',
+            `title: ${JSON.stringify(sketch.title)}`,
+            `author: ${JSON.stringify(sketch.author || '')}`,
+            `date: ${JSON.stringify(sketch.createdAt)}`,
+            'published: true',
+            `strokes: ${JSON.stringify(sketch.strokes)}`,
+            '---',
+            '',
+          ].join('\n');
+          await writeFile(targetFile, frontmatter, 'utf8');
+          const built = join(tree, '.writer-output');
+          await build(tree, built, { logFile: join(stateRoot, 'last-build.log'), remote: true, env: { SITE_URL: siteUrl, BASE_PATH: '/', WRITER_ASTRO_CACHE_DIR: join(tree, '.writer-cache') } });
+          await cp(built, staging, { recursive: true, errorOnExist: true, force: false });
+          assertHeld();
+          await runGit(tree, ['add', '--', relFile], gitEnv);
+          const changed = await runGit(tree, ['diff', '--cached', '--name-only'], gitEnv);
+          if (changed) {
+            await runGit(tree, ['commit', '-m', `Approve sketch: ${sketch.title}`], gitEnv);
+            assertHeld();
+            await runGit(tree, ['push', 'origin', 'HEAD:refs/heads/main'], gitEnv);
+          }
+          await makeReadable(staging);
+          assertHeld();
+          await rename(publicRoot, backup);
+          try {
+            await rename(staging, publicRoot);
+            await rm(backup, { recursive: true, force: true });
+          } catch (swapError) {
+            await rename(backup, publicRoot).catch(() => {});
+            throw swapError;
+          }
+          return { route: '/sketch/' };
+        } finally {
+          await rm(staging, { recursive: true, force: true }).catch(() => {});
+          await runGit(repository, ['worktree', 'remove', '--force', tree], gitEnv).catch(() => {});
+        }
+      });
+    } finally { busy = false; }
+  };
+}

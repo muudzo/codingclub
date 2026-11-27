@@ -64,9 +64,13 @@ function assertLocalLinks(root, base = '/') {
     const document = parseHTML(readFileSync(file, 'utf8')).document;
     assert.equal(document.querySelectorAll('h1').length, 1, file);
     const scripts = [...document.querySelectorAll('script')];
-    assert.equal(scripts.length, 1, `${file}: only the shared navigation enhancement is expected`);
-    assert.equal(scripts[0].getAttribute('src'), `${base}site-navigation.js`);
-    assert.equal(scripts[0].textContent, '', `${file}: no inline or content-injected scripts`);
+    const isSketchPage = file.endsWith(`${join('sketch', 'index.html')}`);
+    assert.deepEqual(
+      scripts.map(s => s.getAttribute('src')),
+      isSketchPage ? [`${base}sketch.js`, `${base}site-navigation.js`] : [`${base}site-navigation.js`],
+      `${file}: only expected scripts may be present`,
+    );
+    assert.ok(scripts.every(s => s.textContent === ''), `${file}: no inline or content-injected scripts`);
     assert.ok(document.querySelector('.owner-tools').hasAttribute('hidden'), 'owner controls start hidden');
     assert.equal(document.querySelectorAll('[style]').length, 0, `${file}: inline styles violate the static CSP`);
     for (const element of document.querySelectorAll('[href], [src]')) {
@@ -97,7 +101,7 @@ test('static website works empty and with new entries, excludes drafts, and supp
   await t.test('empty collections have useful pages, no fake entries, only the trusted navigation script, and working links', () => {
     const result = build(root);
     assert.equal(result.status, 0, result.log);
-    assert.equal(filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html')).length, 7);
+    assert.equal(filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html')).length, 8);
     for (const [section, text] of [['apps', 'No apps published yet.'], ['music', 'No songs shared yet.'], ['photography', 'No photographs shared yet.'], ['blog', 'No posts published yet.'], ['experiments', 'The first ideas are on their way.']]) {
       assert.ok(page(root, section).querySelector('main').textContent.includes(text));
     }
@@ -127,7 +131,7 @@ test('static website works empty and with new entries, excludes drafts, and supp
     write(root, 'src/content/experiments/future.md', '---\ntitle: PRIVATE FUTURE IDEA\ndescription: PRIVATE future idea.\npublished: true\nstage: researching\ndate: 2999-01-01\n---\nPRIVATE idea body.');
     const result = build(root);
     assert.equal(result.status, 0, result.log);
-    assert.equal(filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html')).length, 15);
+    assert.equal(filesBelow(join(root, 'dist')).filter(file => file.endsWith('.html')).length, 16);
     for (const [stage, label] of [['researching', 'Researching'], ['concept', 'Concept'], ['prototype', 'Prototype'], ['in-development', 'In development']]) {
       assert.equal(page(root, `experiments/${stage}`).querySelector('.experiment-stage').textContent, label);
     }

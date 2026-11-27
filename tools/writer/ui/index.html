@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/write/composer.css">
   <script src="/write/drafts.js" defer></script>
   <script src="/write/composer.js" defer></script>
+  <script src="/write/sketches.js" defer></script>
 </head>
 <body data-mode="remote">
   <header class="editor-top frame">
@@ -42,6 +43,11 @@
       <a href="/write/login" id="sign-in-again" class="recovery-link" hidden>Sign in and resume this draft</a>
       <div class="account-actions"><button type="button" class="sign-out" id="discard-draft">Discard draft</button><button type="button" class="sign-out" id="sign-out">Sign out</button></div>
     </form>
+    <section class="sketch-queue" aria-labelledby="sketch-queue-title">
+      <h2 id="sketch-queue-title">Pending sketches</h2>
+      <p id="sketch-queue-status" class="photo-help" role="status">Checking queue...</p>
+      <ul id="pending-sketches" class="sketch-queue-list"></ul>
+    </section>
   </main>
 </body>
 </html>

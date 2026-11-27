@@ -1,0 +1,87 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { formatDate, href } from '../site';
+import { SKETCH_WIDTH, SKETCH_HEIGHT, strokeToSvgElement } from '../lib/sketches.mjs';
+
+const sketches = (await getCollection('sketches'))
+  .filter(entry => entry.data.published)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+<Base title="Sketchbook" description="Draw lines and shapes, export SVG or PDF, and share a sketch for the wall." noindex>
+  <div class="frame collection-page">
+    <header class="page-heading">
+      <h1>Sketchbook</h1>
+      <p>You found the quiet corner. Draw something with lines and shapes, download it as an SVG or PDF, or send it to the wall.</p>
+    </header>
+
+    <section class="sketch-studio" aria-label="Drawing studio">
+      <div class="sketch-toolbar" role="toolbar" aria-label="Drawing tools">
+        <div class="sketch-tool-group" aria-label="Shapes and pen">
+          <button type="button" class="sketch-btn" data-tool="pen" aria-pressed="true">Pen</button>
+          <button type="button" class="sketch-btn" data-tool="line" aria-pressed="false">Line</button>
+          <button type="button" class="sketch-btn" data-tool="rect" aria-pressed="false">Box</button>
+          <button type="button" class="sketch-btn" data-tool="circle" aria-pressed="false">Circle</button>
+        </div>
+        <div class="sketch-tool-group" aria-label="Ink colours">
+          <button type="button" class="sketch-swatch swatch-oxblood" data-color="#7d0c14" aria-label="Oxblood ink" aria-pressed="true"></button>
+          <button type="button" class="sketch-swatch swatch-charcoal" data-color="#1f1c1c" aria-label="Charcoal ink" aria-pressed="false"></button>
+          <button type="button" class="sketch-swatch swatch-slate" data-color="#4a5568" aria-label="Slate ink" aria-pressed="false"></button>
+          <button type="button" class="sketch-swatch swatch-ochre" data-color="#9c6b19" aria-label="Ochre ink" aria-pressed="false"></button>
+        </div>
+        <div class="sketch-tool-group" aria-label="Stroke size">
+          <button type="button" class="sketch-btn" data-width="2" aria-pressed="false">Thin</button>
+          <button type="button" class="sketch-btn" data-width="5" aria-pressed="true">Medium</button>
+          <button type="button" class="sketch-btn" data-width="9" aria-pressed="false">Bold</button>
+        </div>
+        <div class="sketch-tool-group" aria-label="Canvas history">
+          <button type="button" class="sketch-btn" id="sketch-undo">Undo</button>
+          <button type="button" class="sketch-btn" id="sketch-clear">Clear</button>
+        </div>
+      </div>
+
+      <div class="sketch-canvas-wrap">
+        <canvas id="sketch-canvas" width={SKETCH_WIDTH} height={SKETCH_HEIGHT} aria-label="Drawing canvas"></canvas>
+      </div>
+
+      <div class="sketch-actions">
+        <div class="sketch-export-group">
+          <button type="button" class="button button-secondary" id="sketch-download-svg">Download SVG</button>
+          <button type="button" class="button button-secondary" id="sketch-download-pdf">Download PDF</button>
+        </div>
+        <form class="sketch-submit-form" id="sketch-submit-form">
+          <label class="sketch-field">
+            <span>Title</span>
+            <input type="text" name="title" maxlength="60" required placeholder="Untitled doodle" />
+          </label>
+          <label class="sketch-field">
+            <span>Your name (optional)</span>
+            <input type="text" name="author" maxlength="40" placeholder="Anonymous" />
+          </label>
+          <button type="submit" class="button" id="sketch-submit-btn">Post to wall</button>
+        </form>
+        <p class="sketch-status" id="sketch-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="sketch-wall" aria-labelledby="wall-title">
+      <h2 id="wall-title">Community wall</h2>
+      {sketches.length ? (
+        <ul class="sketch-grid">
+          {sketches.map(entry => (
+            <li class="sketch-card">
+              <svg viewBox={`0 0 ${SKETCH_WIDTH} ${SKETCH_HEIGHT}`} role="img" aria-label={entry.data.title} set:html={`<rect width="${SKETCH_WIDTH}" height="${SKETCH_HEIGHT}" fill="#f4f4f4" />${entry.data.strokes.map(strokeToSvgElement).join('')}`} />
+              <div class="sketch-card-meta">
+                <h3>{entry.data.title}</h3>
+                <p>{entry.data.author ? `${entry.data.author} · ` : ''}{formatDate(entry.data.date)}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p class="sketch-wall-empty">No sketches on the wall yet. Draw one above and send it in for review.</p>
+      )}
+    </section>
+  </div>
+  <script is:inline src={href('sketch.js')} defer></script>
+</Base>

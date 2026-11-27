@@ -34,3 +34,11 @@ body[data-mode="remote"] #status{overflow-wrap:anywhere}
 }
 @media(max-height:550px){.editor-top{position:relative}body[data-mode="remote"] .writing>textarea{min-height:130px}}
 @media(min-width:801px){body[data-mode="remote"] .masthead{width:min(1100px,calc(100% - 64px))}}
+.sketch-queue{margin-top:36px;padding-top:24px;border-top:1px solid rgba(125,12,20,.2)}
+.sketch-queue h2{font-size:1.35rem;margin:0 0 8px}
+.sketch-queue-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;list-style:none;padding:0;margin:16px 0 0}
+.sketch-queue-item{background:#d6d6d6;padding:12px;display:grid;gap:10px}
+.sketch-queue-item svg{display:block;width:100%;height:auto}
+.sketch-queue-item p{margin:0;font-size:.95rem}
+.sketch-queue-actions{display:flex;gap:10px}
+.sketch-queue-actions button{min-height:44px;flex:1}
